@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mario Rate Control – Two Can Talk</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:#1a1a2e;min-height:100vh;padding:10px;}
+.wrap{max-width:580px;margin:0 auto;}
+
+/* SCENE */
+.scene{
+  border-radius:14px;overflow:hidden;position:relative;
+  height:200px;background:#5BCEFA;border:3px solid #2C2C2A;
+  margin-bottom:0.75rem;
+}
+.sky-bg{position:absolute;inset:0;background:linear-gradient(180deg,#3a8fd1 0%,#5BCEFA 100%);}
+.cloud{position:absolute;background:#fff;border-radius:20px;}
+.c1{width:70px;height:22px;top:16px;left:24px;}
+.c1::before{content:'';position:absolute;width:38px;height:30px;background:#fff;border-radius:50%;top:-14px;left:8px;}
+.c1::after{content:'';position:absolute;width:26px;height:22px;background:#fff;border-radius:50%;top:-10px;right:5px;}
+.c2{width:50px;height:18px;top:28px;right:50px;}
+.c2::before{content:'';position:absolute;width:28px;height:22px;background:#fff;border-radius:50%;top:-11px;left:5px;}
+
+/* castle */
+.castle{position:absolute;bottom:64px;right:16px;width:56px;height:66px;}
+.castle-body{position:absolute;bottom:0;left:6px;width:42px;height:48px;background:#9E9E8A;border:3px solid #2C2C2A;}
+.castle-door{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:13px;height:18px;background:#2C2C2A;border-radius:6px 6px 0 0;}
+.castle-t1{position:absolute;top:0;left:0;width:13px;height:17px;background:#9E9E8A;border:3px solid #2C2C2A;}
+.castle-t2{position:absolute;top:0;left:21px;width:13px;height:21px;background:#9E9E8A;border:3px solid #2C2C2A;}
+.castle-t3{position:absolute;top:0;right:0;width:13px;height:17px;background:#9E9E8A;border:3px solid #2C2C2A;}
+.castle-flag{position:absolute;top:-13px;left:24px;width:9px;height:9px;background:#E24B4A;}
+
+.ground{position:absolute;bottom:0;left:0;right:0;height:48px;background:#5A3E1B;}
+.ground-top{position:absolute;bottom:48px;left:0;right:0;height:16px;background:#3A7D1E;}
+
+/* STONES PATH */
+.stones-path{
+  position:absolute;bottom:64px;left:0;right:0;
+  display:flex;align-items:flex-end;
+  padding:0 14px;gap:0;
+  height:40px;
+  pointer-events:none;
+}
+.stone{
+  flex:1;height:22px;
+  background:#7a6a50;border:2px solid #2C2C2A;
+  border-radius:5px;margin:0 2px;
+  position:relative;cursor:pointer;pointer-events:all;
+  transition:background 0.15s, transform 0.1s;
+  box-shadow:0 3px 0 #4a3a28;
+  display:flex;align-items:center;justify-content:center;
+}
+.stone:hover{filter:brightness(1.2);}
+.stone.active{background:#F4A823;box-shadow:0 3px 0 #7A4900;transform:translateY(-3px);}
+.stone.done{background:#3A7D1E;box-shadow:0 3px 0 #1B5C0A;}
+.stone.current{background:#F4A823;box-shadow:0 0 10px #F4A823, 0 3px 0 #7A4900;transform:translateY(-4px);animation:stonepulse 0.6s infinite alternate;}
+@keyframes stonepulse{from{box-shadow:0 0 6px #F4A823, 0 3px 0 #7A4900;}to{box-shadow:0 0 16px #F4A823, 0 3px 0 #7A4900;}}
+.stone-num{font-family:'Press Start 2P',cursive;font-size:7px;color:#fff;text-shadow:1px 1px 0 #000;pointer-events:none;}
+.stone.done .stone-num{color:#d0ffd0;}
+
+/* water between stones */
+.water-gap{
+  position:absolute;bottom:64px;left:0;right:0;height:12px;
+  background:repeating-linear-gradient(90deg,#185FA5 0px,#1e6fbf 8px,#185FA5 16px);
+  opacity:0.5;
+}
+
+/* mario */
+.mario-wrap{
+  position:absolute;bottom:86px;
+  transition:left 0.35s cubic-bezier(.4,1.4,.6,1);
+  left:14px;
+  z-index:10;
+}
+.mario-wrap.step{animation:mstep 0.3s ease;}
+.mario-wrap.finish{animation:mfinish 0.5s ease;}
+@keyframes mstep{0%{transform:translateY(0);}40%{transform:translateY(-14px);}100%{transform:translateY(0);}}
+@keyframes mfinish{0%{transform:translateY(0);}30%{transform:translateY(-30px);}70%{transform:translateY(-30px);}100%{transform:translateY(0);}}
+
+.flag-pole{position:absolute;bottom:64px;right:20px;width:4px;height:70px;background:#888;border-radius:2px;z-index:5;}
+.flag-banner{position:absolute;top:0;left:4px;width:16px;height:12px;background:#E24B4A;clip-path:polygon(0 0,100% 50%,0 100%);transition:top 0.8s ease;}
+.flag-banner.lowered{top:52px;}
+
+.coin-pop{position:absolute;top:20px;left:50%;transform:translateX(-50%);font-family:'Press Start 2P',cursive;font-size:11px;color:#F4A823;opacity:0;pointer-events:none;text-shadow:1px 1px 0 #7A4900;white-space:nowrap;z-index:20;}
+.coin-pop.show{animation:coinpop 1s ease forwards;}
+@keyframes coinpop{0%{opacity:1;transform:translateX(-50%) translateY(0);}100%{opacity:0;transform:translateX(-50%) translateY(-40px);}}
+
+/* TABS */
+.tabs{display:flex;gap:0;margin-bottom:0.75rem;border-radius:10px;overflow:hidden;border:2px solid #2C2C2A;}
+.tab{flex:1;padding:0.6rem 0.3rem;text-align:center;font-family:'Press Start 2P',cursive;font-size:7px;cursor:pointer;background:#2C2C2A;color:#888;border:none;line-height:1.6;}
+.tab.active{background:#E24B4A;color:#fff;}
+.tab:nth-child(2).active{background:#3A7D1E;}
+.tab:nth-child(3).active{background:#8B008B;}
+
+/* STATUS */
+.status-bar{font-family:'Press Start 2P',cursive;font-size:7px;color:#F4A823;text-align:center;min-height:26px;margin:0 0 0.6rem;line-height:2.2;background:#2C2C2A;border-radius:8px;padding:0.4rem 0.6rem;}
+
+/* PANEL */
+.panel{background:#1e1e3a;border-radius:14px;padding:1rem;border:2px solid #2C2C2A;}
+
+/* TARGET CARD */
+.target-card{
+  background:#2C2C2A;border:3px solid #5BCEFA;border-radius:12px;
+  padding:0.75rem 0.8rem;margin-bottom:0.75rem;
+}
+.tc-label{font-family:'Press Start 2P',cursive;font-size:7px;color:#5BCEFA;margin-bottom:0.4rem;}
+.tc-word{
+  font-family:'Nunito',sans-serif;font-weight:800;
+  font-size:24px;color:#fff;text-align:center;
+  background:#1a1a2e;border-radius:8px;
+  padding:0.5rem;margin-bottom:0.5rem;
+  min-height:48px;display:flex;align-items:center;justify-content:center;
+  line-height:1.3;letter-spacing:0.5px;
+}
+.tc-syllables{
+  display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:0.5rem;
+}
+.syl{
+  background:#185FA5;color:#fff;border-radius:6px;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;
+  padding:4px 10px;border:2px solid #5BCEFA;
+  min-width:30px;text-align:center;
+}
+.syl.tapped{background:#3A7D1E;border-color:#7ddc6e;}
+.tc-controls{display:flex;gap:6px;}
+.tc-btn{flex:1;padding:0.4rem 0.3rem;border:2px solid #555;border-radius:7px;background:#1a1a2e;color:#ccc;font-family:'Press Start 2P',cursive;font-size:7px;cursor:pointer;text-align:center;}
+.tc-btn:hover{border-color:#5BCEFA;color:#5BCEFA;}
+.tc-btn.next{background:#5BCEFA;border-color:#5BCEFA;color:#1a1a2e;}
+.tc-btn.next:hover{background:#7de8ff;}
+.tc-counter{font-family:'Press Start 2P',cursive;font-size:7px;color:#555;white-space:nowrap;align-self:center;padding:0 2px;}
+
+/* RATE METER */
+.rate-section{margin-bottom:0.75rem;}
+.rate-label{font-family:'Press Start 2P',cursive;font-size:7px;color:#aaa;margin-bottom:0.4rem;text-align:center;}
+.rate-bar{position:relative;height:28px;background:#2C2C2A;border-radius:20px;overflow:hidden;border:2px solid #444;display:flex;}
+.rate-zone{flex:1;display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P',cursive;font-size:6px;color:#fff;text-shadow:1px 1px 0 #000;border-right:2px solid #333;}
+.rate-zone:last-child{border-right:none;}
+.rz-slow{background:#185FA5;}
+.rz-steady{background:#3A7D1E;}
+.rz-fast{background:#E24B4A;}
+.rate-needle{position:absolute;top:3px;bottom:3px;width:5px;background:#fff;border-radius:4px;box-shadow:0 0 8px #fff;transition:left 0.4s ease;left:16%;}
+
+/* ACTION BUTTONS */
+.action-row{display:flex;gap:8px;margin-bottom:0.6rem;}
+.action-btn{flex:1;padding:0.75rem 0.3rem;border:3px solid #2C2C2A;border-radius:10px;color:#fff;font-family:'Press Start 2P',cursive;font-size:8px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,0.4);transition:transform 0.1s,box-shadow 0.1s;text-align:center;line-height:1.6;}
+.action-btn:active{transform:translateY(4px);box-shadow:0 0 0 rgba(0,0,0,0.4);}
+.btn-green{background:#3A7D1E;box-shadow:0 4px 0 #1B5C0A;}
+.btn-red{background:#E24B4A;box-shadow:0 4px 0 #A32D2D;}
+.btn-blue{background:#185FA5;box-shadow:0 4px 0 #0a3a6e;}
+.btn-grey{background:#444;box-shadow:0 4px 0 #222;}
+
+.tap-btn{
+  width:100%;padding:1.1rem;border:3px solid #F4A823;border-radius:12px;
+  background:#2C2C2A;color:#F4A823;font-family:'Press Start 2P',cursive;font-size:12px;
+  cursor:pointer;box-shadow:0 5px 0 #7A4900;transition:transform 0.1s,box-shadow 0.1s;
+  margin-bottom:0.6rem;letter-spacing:1px;
+}
+.tap-btn:active{transform:translateY(5px);box-shadow:0 0 0 #7A4900;}
+.tap-btn.ready{background:#F4A823;color:#2C2C2A;}
+
+/* WORLD TABS */
+.world-tabs{display:flex;gap:6px;margin-bottom:0.75rem;}
+.wtab{flex:1;padding:0.45rem 0.2rem;border-radius:8px;border:2px solid #444;background:#2C2C2A;font-family:'Press Start 2P',cursive;font-size:7px;color:#666;cursor:pointer;text-align:center;line-height:1.6;}
+.wtab.on{border-color:#F4A823;background:#332800;color:#F4A823;}
+
+/* HUD */
+.score-hud{display:flex;justify-content:space-between;background:#2C2C2A;border-radius:8px;padding:0.5rem 1rem;margin-top:0.6rem;}
+.hud-item{font-family:'Press Start 2P',cursive;font-size:7px;color:#fff;line-height:2;}
+.hud-item span{display:block;color:#F4A823;}
+.reset-btn{display:block;width:100%;margin-top:0.5rem;padding:0.5rem;border:2px solid #444;border-radius:8px;background:#2C2C2A;font-family:'Press Start 2P',cursive;font-size:7px;cursor:pointer;color:#666;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- SCENE -->
+  <div class="scene" id="scene">
+    <div class="sky-bg"></div>
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="water-gap"></div>
+    <div class="stones-path" id="stonesPath"></div>
+    <div class="castle">
+      <div class="castle-t1"></div><div class="castle-t2"></div><div class="castle-t3"></div>
+      <div class="castle-body"><div class="castle-door"></div></div>
+      <div class="castle-flag"></div>
+    </div>
+    <div class="flag-pole"><div class="flag-banner" id="flagBanner"></div></div>
+    <div class="mario-wrap" id="marioWrap">
+      <svg width="30" height="42" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="0" width="16" height="8" rx="2" fill="#E24B4A"/>
+        <rect x="8" y="6" width="20" height="4" fill="#E24B4A"/>
+        <rect x="4" y="12" width="28" height="14" rx="2" fill="#F0955A"/>
+        <rect x="8" y="14" width="6" height="6" fill="#2C2C2A"/>
+        <rect x="22" y="14" width="6" height="6" fill="#2C2C2A"/>
+        <rect x="10" y="15" width="3" height="3" fill="#fff"/>
+        <rect x="24" y="15" width="3" height="3" fill="#fff"/>
+        <rect x="12" y="18" width="12" height="2" fill="#2C2C2A"/>
+        <rect x="6" y="26" width="24" height="12" rx="2" fill="#185FA5"/>
+        <rect x="10" y="24" width="16" height="4" fill="#E24B4A"/>
+        <rect x="4" y="38" width="10" height="8" rx="2" fill="#E24B4A"/>
+        <rect x="22" y="38" width="10" height="8" rx="2" fill="#E24B4A"/>
+        <rect x="4" y="44" width="12" height="4" rx="2" fill="#7A4900"/>
+        <rect x="20" y="44" width="12" height="4" rx="2" fill="#7A4900"/>
+        <rect x="2" y="16" width="4" height="8" rx="2" fill="#F0955A"/>
+        <rect x="30" y="16" width="4" height="8" rx="2" fill="#F0955A"/>
+      </svg>
+    </div>
+    <div class="coin-pop" id="coinPop">GREAT!</div>
+    <div class="ground-top"></div>
+    <div class="ground"></div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-bar" id="statusBar">PICK A WORLD — THEN CHOOSE A TARGET!</div>
+
+  <!-- PANEL -->
+  <div class="panel">
+
+    <!-- WORLD TABS -->
+    <div class="world-tabs">
+      <button class="wtab on" id="w1" onclick="setWorld(1)">🍄 WORLD 1<br>WORDS</button>
+      <button class="wtab" id="w2" onclick="setWorld(2)">⭐ WORLD 2<br>PHRASES</button>
+      <button class="wtab" id="w3" onclick="setWorld(3)">👑 WORLD 3<br>SENTENCES</button>
+    </div>
+
+    <!-- TARGET CARD -->
+    <div class="target-card">
+      <div class="tc-label" id="tcLabel">TARGET — TAP NEXT TO CHANGE</div>
+      <div class="tc-word" id="tcWord">—</div>
+      <div class="tc-syllables" id="tcSyllables"></div>
+      <div class="tc-controls">
+        <button class="tc-btn" onclick="prevTarget()">◀ PREV</button>
+        <span class="tc-counter" id="tcCounter">1/8</span>
+        <button class="tc-btn next" onclick="nextTarget()">NEXT ▶</button>
+      </div>
+    </div>
+
+    <!-- RATE METER -->
+    <div class="rate-section">
+      <div class="rate-label">— RATE METER —</div>
+      <div class="rate-bar">
+        <div class="rate-zone rz-slow">🐢 SLOW</div>
+        <div class="rate-zone rz-steady">✅ STEADY</div>
+        <div class="rate-zone rz-fast">🐇 FAST</div>
+        <div class="rate-needle" id="rateNeedle"></div>
+      </div>
+    </div>
+
+    <!-- TAP BUTTON -->
+    <button class="tap-btn ready" id="tapBtn" onclick="tapStone()">
+      👆 TAP FOR EACH WORD / SYLLABLE
+    </button>
+
+    <!-- ACTION ROW -->
+    <div class="action-row">
+      <button class="action-btn btn-green" onclick="markGood()">✓ GOOD<br>RATE!</button>
+      <button class="action-btn btn-red" onclick="markRetry()">↩ TRY<br>AGAIN</button>
+      <button class="action-btn btn-blue" onclick="markModel()">👂 MODEL<br>IT</button>
+      <button class="action-btn btn-grey" onclick="resetStones()">↺ RESET<br>STONES</button>
+    </div>
+
+  </div>
+
+  <!-- HUD -->
+  <div class="score-hud">
+    <div class="hud-item">COINS<span id="coinCount">000</span></div>
+    <div class="hud-item">SCORE<span id="scoreCount">0000</span></div>
+    <div class="hud-item">WORLD<span id="worldLabel">1</span></div>
+  </div>
+  <button class="reset-btn" onclick="resetAll()">🔄 RESET SESSION</button>
+</div>
+
+<script>
+// TARGETS per world: {text, syllables[]}
+var WORLDS = {
+  1: {
+    label: 'WORLD 1 — SINGLE WORDS',
+    targets: [
+      {text:'mushroom',  syls:['mush','room']},
+      {text:'castle',    syls:['cas','tle']},
+      {text:'princess',  syls:['prin','cess']},
+      {text:'Bowser',    syls:['Bow','ser']},
+      {text:'power up',  syls:['pow','er','up']},
+      {text:'Koopa',     syls:['Koo','pa']},
+      {text:'Yoshi',     syls:['Yo','shi']},
+      {text:'Nintendo',  syls:['Nin','ten','do']},
+      {text:'Toad',      syls:['Toad']},
+      {text:'fireball',  syls:['fire','ball']}
+    ]
+  },
+  2: {
+    label: 'WORLD 2 — SHORT PHRASES',
+    targets: [
+      {text:"let's go Mario",       syls:["let's","go","Mar","i","o"]},
+      {text:"jump on it",           syls:["jump","on","it"]},
+      {text:"get the coin",         syls:["get","the","coin"]},
+      {text:"watch out Goomba",     syls:["watch","out","Goom","ba"]},
+      {text:"star power now",       syls:["star","pow","er","now"]},
+      {text:"run to the castle",    syls:["run","to","the","cas","tle"]},
+      {text:"it's a mushroom",      syls:["it's","a","mush","room"]},
+      {text:"Bowser is coming",     syls:["Bow","ser","is","com","ing"]},
+      {text:"nice one Mario",       syls:["nice","one","Mar","i","o"]},
+      {text:"over the bridge",      syls:["o","ver","the","bridge"]}
+    ]
+  },
+  3: {
+    label: 'WORLD 3 — SENTENCES',
+    targets: [
+      {text:"Mario jumped over the Goomba",         syls:["Mar","i","o","jumped","o","ver","the","Goom","ba"]},
+      {text:"I can get the star power",             syls:["I","can","get","the","star","pow","er"]},
+      {text:"Bowser took the princess away",        syls:["Bow","ser","took","the","prin","cess","a","way"]},
+      {text:"Let's collect all the gold coins",     syls:["Let's","col","lect","all","the","gold","coins"]},
+      {text:"Mario ran fast to the castle",         syls:["Mar","i","o","ran","fast","to","the","cas","tle"]},
+      {text:"I need a mushroom to grow bigger",     syls:["I","need","a","mush","room","to","grow","big","ger"]},
+      {text:"Watch out for the Koopa shell",        syls:["Watch","out","for","the","Koo","pa","shell"]},
+      {text:"Yoshi can jump really high",           syls:["Yo","shi","can","jump","real","ly","high"]},
+      {text:"We made it to the next level",         syls:["We","made","it","to","the","next","lev","el"]},
+      {text:"The princess is in another castle",    syls:["The","prin","cess","is","in","an","oth","er","cas","tle"]}
+    ]
+  }
+};
+
+var world = 1;
+var targetIdx = 0;
+var stoneIdx = -1; // current stone tapped (-1 = not started)
+var tapTimes = [];
+var coins = 0, score = 0;
+var stoneCount = 0;
+
+var marioWrap = document.getElementById('marioWrap');
+var statusBar = document.getElementById('statusBar');
+var coinPop = document.getElementById('coinPop');
+var coinCount = document.getElementById('coinCount');
+var scoreCount = document.getElementById('scoreCount');
+var rateNeedle = document.getElementById('rateNeedle');
+var flagBanner = document.getElementById('flagBanner');
+
+function getCurrentTarget() {
+  return WORLDS[world].targets[targetIdx];
+}
+
+function setWorld(w) {
+  world = w;
+  targetIdx = 0;
+  stoneIdx = -1;
+  tapTimes = [];
+  for(var i=1;i<=3;i++) document.getElementById('w'+i).className='wtab'+(i===w?' on':'');
+  document.getElementById('worldLabel').textContent = w;
+  resetStones();
+  renderTarget();
+  statusBar.textContent = WORLDS[w].label+' — TAP A TARGET TO BEGIN!';
+}
+
+function renderTarget() {
+  var t = getCurrentTarget();
+  var syls = t.syls;
+  document.getElementById('tcWord').textContent = t.text;
+  document.getElementById('tcLabel').textContent = 'TARGET — '+syls.length+' STEP'+(syls.length!==1?'S':'');
+  document.getElementById('tcCounter').textContent = (targetIdx+1)+'/'+WORLDS[world].targets.length;
+  // syllable bubbles
+  var sc = document.getElementById('tcSyllables');
+  sc.innerHTML = '';
+  for(var i=0;i<syls.length;i++){
+    var s = document.createElement('span');
+    s.className = 'syl';
+    s.id = 'syl'+i;
+    s.textContent = syls[i];
+    sc.appendChild(s);
+  }
+  buildStones(syls.length);
+  resetMario();
+  rateNeedle.style.left = '49%';
+}
+
+function nextTarget() {
+  var targets = WORLDS[world].targets;
+  targetIdx = (targetIdx+1) % targets.length;
+  stoneIdx = -1; tapTimes = [];
+  renderTarget();
+  statusBar.textContent = 'NEW TARGET — READY!';
+}
+
+function prevTarget() {
+  var targets = WORLDS[world].targets;
+  targetIdx = (targetIdx-1+targets.length) % targets.length;
+  stoneIdx = -1; tapTimes = [];
+  renderTarget();
+  statusBar.textContent = 'PREVIOUS TARGET — READY!';
+}
+
+// STONES
+function buildStones(n) {
+  stoneCount = n;
+  stoneIdx = -1;
+  tapTimes = [];
+  var path = document.getElementById('stonesPath');
+  path.innerHTML = '';
+  // position mario at start
+  var sceneW = document.getElementById('scene').offsetWidth || 560;
+  for(var i=0;i<n;i++){
+    var stone = document.createElement('div');
+    stone.className = 'stone';
+    stone.id = 'stone'+i;
+    var num = document.createElement('span');
+    num.className = 'stone-num';
+    num.textContent = i+1;
+    stone.appendChild(num);
+    (function(idx){
+      stone.onclick = function(){ tapToStone(idx); };
+    })(i);
+    path.appendChild(stone);
+  }
+  positionMarioAtStone(-1);
+}
+
+function tapStone() {
+  var next = stoneIdx + 1;
+  if(next >= stoneCount) return;
+  tapToStone(next);
+}
+
+function tapToStone(idx) {
+  if(idx > stoneIdx + 1) return; // must go in order
+  var now = Date.now();
+  // mark previous done
+  if(stoneIdx >= 0) {
+    var prev = document.getElementById('stone'+stoneIdx);
+    if(prev){ prev.className='stone done'; }
+    // highlight syl
+    var psyl = document.getElementById('syl'+stoneIdx);
+    if(psyl) psyl.classList.add('tapped');
+  }
+  stoneIdx = idx;
+  tapTimes.push(now);
+  // mark current
+  var cur = document.getElementById('stone'+idx);
+  if(cur){ cur.className='stone current'; }
+  var csyl = document.getElementById('syl'+idx);
+  if(csyl){ csyl.classList.add('tapped'); }
+  // move mario
+  positionMarioAtStone(idx);
+  marioStep();
+  // rate calc
+  if(tapTimes.length >= 2) updateRate();
+  // finished?
+  if(idx === stoneCount - 1) {
+    setTimeout(finishRun, 400);
+  }
+  statusBar.textContent = 'STEP '+(idx+1)+' OF '+stoneCount+' — KEEP GOING!';
+}
+
+function positionMarioAtStone(idx) {
+  var path = document.getElementById('stonesPath');
+  var scene = document.getElementById('scene');
+  var sceneW = scene.offsetWidth || 560;
+  var padding = 14;
+  var stoneW = (sceneW - padding*2 - (stoneCount-1)*4) / stoneCount;
+  var left;
+  if(idx < 0) {
+    left = padding - 4;
+  } else {
+    left = padding + idx * (stoneW + 4) + stoneW/2 - 16;
+  }
+  marioWrap.style.left = Math.round(left) + 'px';
+}
+
+function marioStep() {
+  marioWrap.classList.remove('step','finish');
+  void marioWrap.offsetWidth;
+  marioWrap.classList.add('step');
+  setTimeout(function(){ marioWrap.classList.remove('step'); }, 350);
+}
+
+function resetMario() {
+  marioWrap.classList.remove('step','finish');
+  marioWrap.style.left = '14px';
+  flagBanner.classList.remove('lowered');
+}
+
+function finishRun() {
+  // mark last stone done
+  var last = document.getElementById('stone'+(stoneCount-1));
+  if(last) last.className = 'stone done';
+  marioWrap.classList.remove('step');
+  void marioWrap.offsetWidth;
+  marioWrap.classList.add('finish');
+  setTimeout(function(){ marioWrap.classList.remove('finish'); }, 600);
+  flagBanner.classList.add('lowered');
+  showCoin('LEVEL CLEAR!');
+  statusBar.textContent = 'ALL STEPS DONE! TAP ✓ GOOD RATE OR ↩ TRY AGAIN!';
+}
+
+function updateRate() {
+  // calc avg inter-tap interval
+  var intervals = [];
+  for(var i=1;i<tapTimes.length;i++) intervals.push(tapTimes[i]-tapTimes[i-1]);
+  var avg = intervals.reduce(function(a,b){return a+b;},0)/intervals.length;
+  // slow >700ms, steady 350-700, fast <350
+  var pct;
+  if(avg > 900) pct = 10;
+  else if(avg > 700) pct = 20;
+  else if(avg > 500) pct = 40;
+  else if(avg > 350) pct = 55;
+  else if(avg > 250) pct = 72;
+  else pct = 88;
+  rateNeedle.style.left = pct+'%';
+}
+
+function resetStones() {
+  stoneIdx = -1;
+  tapTimes = [];
+  var t = getCurrentTarget ? getCurrentTarget() : null;
+  var n = t ? t.syls.length : 4;
+  buildStones(n);
+  resetMario();
+  rateNeedle.style.left = '49%';
+  // reset syl highlights
+  var syls = document.querySelectorAll('.syl');
+  for(var i=0;i<syls.length;i++) syls[i].classList.remove('tapped');
+}
+
+function markGood() {
+  coins++; score += 200;
+  coinCount.textContent = String(coins).padStart(3,'0');
+  scoreCount.textContent = String(score).padStart(4,'0');
+  showCoin('GREAT RATE!');
+  statusBar.textContent = 'PERFECT RATE! ★ COIN GET!';
+}
+
+function markRetry() {
+  resetStones();
+  statusBar.textContent = 'TRY AGAIN — NICE AND STEADY!';
+}
+
+function markModel() {
+  resetStones();
+  statusBar.textContent = 'THERAPIST MODELS — THEN CHILD HAS A GO!';
+}
+
+function showCoin(txt) {
+  coinPop.textContent = txt || 'COIN!';
+  coinPop.className = 'coin-pop';
+  void coinPop.offsetWidth;
+  coinPop.className = 'coin-pop show';
+}
+
+function resetAll() {
+  coins=0; score=0;
+  coinCount.textContent='000';
+  scoreCount.textContent='0000';
+  world=1; targetIdx=0;
+  for(var i=1;i<=3;i++) document.getElementById('w'+i).className='wtab'+(i===1?' on':'');
+  document.getElementById('worldLabel').textContent='1';
+  renderTarget();
+  rateNeedle.style.left='49%';
+  statusBar.textContent='PICK A WORLD — THEN CHOOSE A TARGET!';
+}
+
+// INIT
+renderTarget();
+</script>
+</body>
+</html>
