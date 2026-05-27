@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<!-- saved from url=(0067)file:///Users/margueritegaynor/Downloads/mario_phonation_chain.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mario Phonation Chain – Two Can Talk</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:#1a1a2e;min-height:100vh;padding:10px;}
+.wrap{max-width:580px;margin:0 auto;}
+
+/* SCENE */
+.scene{
+  border-radius:14px;overflow:hidden;position:relative;
+  height:210px;background:#5BCEFA;border:3px solid #2C2C2A;
+  margin-bottom:0.75rem;
+}
+.sky-bg{position:absolute;inset:0;background:linear-gradient(180deg,#3a8fd1 0%,#5BCEFA 100%);}
+.cloud{position:absolute;background:#fff;border-radius:20px;}
+.c1{width:70px;height:22px;top:16px;left:24px;}
+.c1::before{content:'';position:absolute;width:38px;height:30px;background:#fff;border-radius:50%;top:-14px;left:8px;}
+.c1::after{content:'';position:absolute;width:26px;height:22px;background:#fff;border-radius:50%;top:-10px;right:5px;}
+.c2{width:50px;height:18px;top:28px;right:50px;}
+.c2::before{content:'';position:absolute;width:28px;height:22px;background:#fff;border-radius:50%;top:-11px;left:5px;}
+
+.ground{position:absolute;bottom:0;left:0;right:0;height:48px;background:#5A3E1B;}
+.ground-top{position:absolute;bottom:48px;left:0;right:0;height:16px;background:#3A7D1E;}
+
+/* BLOCK CHAIN */
+.block-chain{
+  position:absolute;bottom:100px;left:0;right:0;
+  display:flex;align-items:center;justify-content:center;
+  gap:4px;padding:0 12px;
+}
+.chain-block{
+  width:36px;height:36px;
+  background:#F4A823;border:3px solid #2C2C2A;
+  border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Press Start 2P',cursive;font-size:11px;
+  color:#7A4900;
+  box-shadow:inset -3px -3px 0 #7A4900;
+  position:relative;
+  transition:background 0.15s, transform 0.15s;
+  flex-shrink:0;
+}
+.chain-block.pending{background:#3a3a5a;border-color:#555;color:#666;box-shadow:inset -3px -3px 0 #222;}
+.chain-block.current{
+  background:#F4A823;border-color:#2C2C2A;color:#7A4900;
+  animation:blockpulse 0.5s infinite alternate;
+  box-shadow:inset -3px -3px 0 #7A4900, 0 0 12px #F4A823;
+}
+@keyframes blockpulse{from{box-shadow:inset -3px -3px 0 #7A4900, 0 0 6px #F4A823;}to{box-shadow:inset -3px -3px 0 #7A4900, 0 0 18px #F4A823;}}
+.chain-block.hit{
+  background:#B8860B;color:#F4A823;
+  box-shadow:inset -3px -3px 0 #6B4F00;
+  animation:blockhit 0.3s ease;
+}
+@keyframes blockhit{0%{transform:translateY(-8px);}100%{transform:translateY(0);}}
+.chain-block.combo{background:#E24B4A;border-color:#2C2C2A;color:#fff;box-shadow:inset -3px -3px 0 #A32D2D;}
+
+.chain-connector{width:8px;height:4px;background:#7A4900;border-radius:2px;flex-shrink:0;}
+
+/* MARIO */
+.mario-wrap{
+  position:absolute;bottom:64px;
+  transition:left 0.4s cubic-bezier(.4,1.3,.6,1);
+  left:20px;z-index:10;
+}
+.mario-wrap.jump{animation:mjump 0.5s ease;}
+.mario-wrap.bigump{animation:mbigjump 0.7s ease;}
+@keyframes mjump{0%{transform:translateY(0);}40%{transform:translateY(-50px);}100%{transform:translateY(0);}}
+@keyframes mbigjump{0%{transform:translateY(0);}40%{transform:translateY(-80px);}100%{transform:translateY(0);}}
+
+/* COMBO BURST */
+.combo-burst{
+  position:absolute;top:16px;left:50%;transform:translateX(-50%);
+  font-family:'Press Start 2P',cursive;font-size:13px;
+  color:#E24B4A;opacity:0;pointer-events:none;
+  text-shadow:2px 2px 0 #2C2C2A;white-space:nowrap;z-index:20;
+}
+.combo-burst.show{animation:combopop 1s ease forwards;}
+@keyframes combopop{0%{opacity:1;transform:translateX(-50%) scale(1);}50%{transform:translateX(-50%) scale(1.3);}100%{opacity:0;transform:translateX(-50%) scale(0.8);}}
+
+.coin-pop{
+  position:absolute;top:30px;right:20px;
+  font-family:'Press Start 2P',cursive;font-size:10px;
+  color:#F4A823;opacity:0;pointer-events:none;
+  text-shadow:1px 1px 0 #7A4900;z-index:20;
+}
+.coin-pop.show{animation:coinpop 0.8s ease forwards;}
+@keyframes coinpop{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-30px);}}
+
+/* TABS */
+.tabs{display:flex;gap:0;margin-bottom:0.75rem;border-radius:10px;overflow:hidden;border:2px solid #2C2C2A;}
+.tab{flex:1;padding:0.6rem 0.3rem;text-align:center;font-family:'Press Start 2P',cursive;font-size:7px;cursor:pointer;background:#2C2C2A;color:#888;border:none;line-height:1.6;}
+.tab.active{background:#E24B4A;color:#fff;}
+.tab:nth-child(2).active{background:#3A7D1E;}
+
+/* STATUS */
+.status-bar{font-family:'Press Start 2P',cursive;font-size:7px;color:#F4A823;text-align:center;min-height:26px;margin:0 0 0.6rem;line-height:2.2;background:#2C2C2A;border-radius:8px;padding:0.4rem 0.6rem;}
+
+/* PANEL */
+.panel{background:#1e1e3a;border-radius:14px;padding:1rem;border:2px solid #2C2C2A;}
+
+/* LEVEL TABS */
+.level-tabs{display:flex;gap:6px;margin-bottom:0.75rem;}
+.ltab{flex:1;padding:0.4rem 0.2rem;border-radius:8px;border:2px solid #444;background:#2C2C2A;font-family:'Press Start 2P',cursive;font-size:7px;color:#666;cursor:pointer;text-align:center;line-height:1.7;}
+.ltab.on{border-color:#F4A823;background:#332800;color:#F4A823;}
+
+/* SOUND SELECTOR */
+.sound-select{display:flex;gap:6px;margin-bottom:0.75rem;flex-wrap:wrap;}
+.sound-btn{
+  flex:1;min-width:60px;padding:0.5rem 0.3rem;
+  border:2px solid #444;border-radius:8px;
+  background:#2C2C2A;color:#aaa;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:16px;
+  cursor:pointer;text-align:center;
+  transition:border-color 0.12s, background 0.12s, color 0.12s;
+}
+.sound-btn:hover{border-color:#5BCEFA;}
+.sound-btn.on{border-color:#5BCEFA;background:#0d1e33;color:#5BCEFA;}
+.sound-label{font-family:'Press Start 2P',cursive;font-size:7px;color:#aaa;margin-bottom:0.4rem;}
+
+/* PROGRESS DISPLAY */
+.progress-section{
+  background:#2C2C2A;border-radius:10px;padding:0.75rem;
+  margin-bottom:0.75rem;display:flex;align-items:center;gap:12px;
+}
+.rep-counter{
+  font-family:'Press Start 2P',cursive;font-size:20px;color:#F4A823;
+  white-space:nowrap;
+}
+.rep-sub{font-family:'Press Start 2P',cursive;font-size:7px;color:#666;margin-top:4px;}
+.dur-bar-wrap{flex:1;}
+.dur-bar-label{font-family:'Press Start 2P',cursive;font-size:7px;color:#aaa;margin-bottom:4px;}
+.dur-bar{height:18px;background:#1a1a2e;border-radius:10px;overflow:hidden;border:2px solid #444;}
+.dur-fill{height:100%;border-radius:10px;width:0%;background:#3A7D1E;transition:width 0.06s linear;}
+.dur-fill.warn{background:#F4A823;}
+.dur-fill.full{background:#E24B4A;}
+.dur-pct{font-family:'Press Start 2P',cursive;font-size:7px;color:#aaa;text-align:right;margin-top:2px;}
+
+/* HOLD BUTTON */
+.hold-btn{
+  width:100%;padding:1.1rem;border:3px solid #2C2C2A;border-radius:12px;
+  background:#E24B4A;color:#fff;font-family:'Press Start 2P',cursive;font-size:12px;
+  cursor:pointer;letter-spacing:1px;
+  box-shadow:0 5px 0 #A32D2D;
+  transition:transform 0.1s, box-shadow 0.1s, background 0.1s;
+  display:block;text-align:center;
+  user-select:none;-webkit-user-select:none;touch-action:none;
+  margin-bottom:0.6rem;
+}
+.hold-btn.pressed{transform:translateY(5px);box-shadow:0 0 0 #A32D2D;background:#3A7D1E;}
+
+/* THERAPIST BUTTONS */
+.therapist-row{display:flex;gap:8px;margin-bottom:0.6rem;}
+.t-btn{
+  flex:1;padding:0.75rem 0.3rem;border:3px solid #2C2C2A;border-radius:10px;
+  color:#fff;font-family:'Press Start 2P',cursive;font-size:8px;
+  cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,0.4);
+  transition:transform 0.1s,box-shadow 0.1s;text-align:center;line-height:1.6;
+}
+.t-btn:active{transform:translateY(4px);box-shadow:0 0 0 rgba(0,0,0,0.4);}
+.btn-green{background:#3A7D1E;box-shadow:0 4px 0 #1B5C0A;}
+.btn-red{background:#E24B4A;box-shadow:0 4px 0 #A32D2D;}
+.btn-amber{background:#F4A823;box-shadow:0 4px 0 #7A4900;color:#2C2C2A;}
+.btn-grey{background:#444;box-shadow:0 4px 0 #222;}
+
+/* HUD */
+.score-hud{display:flex;justify-content:space-between;background:#2C2C2A;border-radius:8px;padding:0.5rem 1rem;margin-top:0.6rem;}
+.hud-item{font-family:'Press Start 2P',cursive;font-size:7px;color:#fff;line-height:2;}
+.hud-item span{display:block;color:#F4A823;}
+.reset-btn{display:block;width:100%;margin-top:0.5rem;padding:0.5rem;border:2px solid #444;border-radius:8px;background:#2C2C2A;font-family:'Press Start 2P',cursive;font-size:7px;cursor:pointer;color:#666;}
+
+.mode-badge{
+  display:inline-block;font-family:'Press Start 2P',cursive;font-size:7px;
+  border-radius:20px;padding:3px 10px;margin-bottom:0.6rem;
+}
+.mode-badge.child{background:#E24B4A;color:#fff;}
+.mode-badge.therapist{background:#3A7D1E;color:#fff;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- SCENE -->
+  <div class="scene" id="scene">
+    <div class="sky-bg"></div>
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="block-chain" id="blockChain"><div class="chain-block combo" id="cb0">★</div><div class="chain-connector"></div><div class="chain-block combo" id="cb1">★</div><div class="chain-connector"></div><div class="chain-block combo" id="cb2">★</div></div>
+    <div class="mario-wrap" id="marioWrap" style="left: 323px;">
+      <svg width="30" height="42" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="0" width="16" height="8" rx="2" fill="#E24B4A"></rect>
+        <rect x="8" y="6" width="20" height="4" fill="#E24B4A"></rect>
+        <rect x="4" y="12" width="28" height="14" rx="2" fill="#F0955A"></rect>
+        <rect x="8" y="14" width="6" height="6" fill="#2C2C2A"></rect>
+        <rect x="22" y="14" width="6" height="6" fill="#2C2C2A"></rect>
+        <rect x="10" y="15" width="3" height="3" fill="#fff"></rect>
+        <rect x="24" y="15" width="3" height="3" fill="#fff"></rect>
+        <rect x="12" y="18" width="12" height="2" fill="#2C2C2A"></rect>
+        <rect x="6" y="26" width="24" height="12" rx="2" fill="#185FA5"></rect>
+        <rect x="10" y="24" width="16" height="4" fill="#E24B4A"></rect>
+        <rect x="4" y="38" width="10" height="8" rx="2" fill="#E24B4A"></rect>
+        <rect x="22" y="38" width="10" height="8" rx="2" fill="#E24B4A"></rect>
+        <rect x="4" y="44" width="12" height="4" rx="2" fill="#7A4900"></rect>
+        <rect x="20" y="44" width="12" height="4" rx="2" fill="#7A4900"></rect>
+        <rect x="2" y="16" width="4" height="8" rx="2" fill="#F0955A"></rect>
+        <rect x="30" y="16" width="4" height="8" rx="2" fill="#F0955A"></rect>
+      </svg>
+    </div>
+    <div class="combo-burst show" id="comboBurst">CHAIN COMPLETE! ★</div>
+    <div class="coin-pop show" id="coinPop">+1</div>
+    <div class="ground-top"></div>
+    <div class="ground"></div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-bar" id="statusBar">ALL REPS DONE! WAHOO! ★ PICK NEXT LEVEL!</div>
+
+  <!-- PANEL -->
+  <div class="panel" id="mainPanel">
+
+    <!-- MODE TABS -->
+    <div class="tabs">
+      <button class="tab active" id="tabChild" onclick="setMode(&#39;child&#39;)">🎮 CHILD MODE</button>
+      <button class="tab" id="tabTherapist" onclick="setMode(&#39;therapist&#39;)">👩‍⚕️ THERAPIST MODE</button>
+    </div>
+
+    <div class="mode-badge child" id="modeBadge">CHILD CONTROLS</div>
+
+    <!-- LEVEL TABS -->
+    <div class="level-tabs">
+      <button class="ltab on" id="l1" onclick="setLevel(1)">⭐ LVL 1<br>2s · 3 reps</button>
+      <button class="ltab" id="l2" onclick="setLevel(2)">🌟 LVL 2<br>3s · 4 reps</button>
+      <button class="ltab" id="l3" onclick="setLevel(3)">👑 LVL 3<br>4s · 5 reps</button>
+      <button class="ltab" id="l4" onclick="setLevel(4)">🏆 LVL 4<br>5s · 6 reps</button>
+    </div>
+
+    <!-- SOUND SELECTOR -->
+    <div class="sound-label">CHOOSE A SOUND:</div>
+    <div class="sound-select" id="soundSelect">
+      <button class="sound-btn" onclick="setSound(this,&#39;Aaah&#39;)">Aaah</button>
+      <button class="sound-btn" onclick="setSound(this,&#39;Mmmm&#39;)">Mmmm</button>
+      <button class="sound-btn" onclick="setSound(this,&#39;Oooh&#39;)">Oooh</button>
+      <button class="sound-btn" onclick="setSound(this,&#39;Eeee&#39;)">Eeee</button>
+      <button class="sound-btn" onclick="setSound(this,&#39;Ssss&#39;)">Ssss</button>
+      <button class="sound-btn on" onclick="setSound(this,&#39;Zzzz&#39;)">Zzzz</button>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-section">
+      <div>
+        <div class="rep-counter"><span id="repDone">3</span>/<span id="repTotal">3</span></div>
+        <div class="rep-sub">REPS</div>
+      </div>
+      <div class="dur-bar-wrap">
+        <div class="dur-bar-label">HOLD DURATION — TARGET: <span id="durTarget">2</span>s</div>
+        <div class="dur-bar"><div class="dur-fill" id="durFill" style="width: 0%;"></div></div>
+        <div class="dur-pct" id="durPct">0%</div>
+      </div>
+    </div>
+
+    <!-- CHILD MODE -->
+    <div id="childControls">
+      <button class="hold-btn" id="holdBtn">🎤 HOLD TO SPEAK!</button>
+    </div>
+
+    <!-- THERAPIST MODE -->
+    <div id="therapistControls" style="display:none;">
+      <div class="therapist-row">
+        <button class="t-btn btn-green" onclick="therapistGood()">✓ GOOD<br>REP!</button>
+        <button class="t-btn btn-red" onclick="therapistRetry()">↩ TRY<br>AGAIN</button>
+        <button class="t-btn btn-amber" onclick="therapistModel()">👂 MODEL<br>IT</button>
+        <button class="t-btn btn-grey" onclick="resetChain()">↺ RESET<br>CHAIN</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- HUD -->
+  <div class="score-hud">
+    <div class="hud-item">COINS<span id="coinCount">006</span></div>
+    <div class="hud-item">BEST COMBO<span id="bestCombo">3</span></div>
+    <div class="hud-item">LEVEL<span id="levelLabel">1</span></div>
+  </div>
+  <button class="reset-btn" onclick="resetAll()">🔄 RESET SESSION</button>
+</div>
+
+<script>
+// CONFIG
+var LEVELS = {
+  1:{sec:2, reps:3, label:'2s · 3 reps'},
+  2:{sec:3, reps:4, label:'3s · 4 reps'},
+  3:{sec:4, reps:5, label:'4s · 5 reps'},
+  4:{sec:5, reps:6, label:'5s · 6 reps'}
+};
+
+var mode = 'child';
+var level = 1;
+var currentSound = 'Aaah';
+var repsDone = 0;
+var holding = false;
+var elapsed = 0;
+var barTimer = null;
+var combo = 0;
+var bestCombo = 0;
+var coins = 0;
+
+var marioWrap = document.getElementById('marioWrap');
+var statusBar = document.getElementById('statusBar');
+var durFill = document.getElementById('durFill');
+var durPct = document.getElementById('durPct');
+var coinPop = document.getElementById('coinPop');
+var comboBurst = document.getElementById('comboBurst');
+var holdBtn = document.getElementById('holdBtn');
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('tabChild').className = 'tab'+(m==='child'?' active':'');
+  document.getElementById('tabTherapist').className = 'tab'+(m==='therapist'?' active':'');
+  document.getElementById('childControls').style.display = m==='child'?'block':'none';
+  document.getElementById('therapistControls').style.display = m==='therapist'?'block':'none';
+  var badge = document.getElementById('modeBadge');
+  badge.textContent = m==='child'?'CHILD CONTROLS':'THERAPIST CONTROLS';
+  badge.className = 'mode-badge '+(m==='child'?'child':'therapist');
+  resetChain();
+  statusBar.textContent = m==='child'?'HOLD THE BUTTON WHILE YOU SAY "'+currentSound.toUpperCase()+'"!':'THERAPIST: TAP ✓ GOOD REP WHEN READY!';
+}
+
+function setLevel(l) {
+  level = l;
+  for(var i=1;i<=4;i++) document.getElementById('l'+i).className='ltab'+(i===l?' on':'');
+  document.getElementById('durTarget').textContent = LEVELS[l].sec;
+  document.getElementById('repTotal').textContent = LEVELS[l].reps;
+  document.getElementById('levelLabel').textContent = l;
+  resetChain();
+  statusBar.textContent = 'LEVEL '+l+' — '+LEVELS[l].label+' — READY!';
+}
+
+function setSound(btn, sound) {
+  currentSound = sound;
+  var btns = document.querySelectorAll('.sound-btn');
+  for(var i=0;i<btns.length;i++) btns[i].classList.remove('on');
+  btn.classList.add('on');
+  statusBar.textContent = 'SOUND: "'+sound.toUpperCase()+'" — HOLD TO START!';
+}
+
+// CHAIN / BLOCKS
+function buildChain() {
+  var chain = document.getElementById('blockChain');
+  chain.innerHTML = '';
+  var reps = LEVELS[level].reps;
+  for(var i=0;i<reps;i++){
+    if(i>0){
+      var conn = document.createElement('div');
+      conn.className = 'chain-connector';
+      chain.appendChild(conn);
+    }
+    var block = document.createElement('div');
+    block.className = 'chain-block'+(i===0?' current':' pending');
+    block.id = 'cb'+i;
+    block.textContent = '?';
+    chain.appendChild(block);
+  }
+  positionMario(0);
+}
+
+function positionMario(repIdx) {
+  var scene = document.getElementById('scene');
+  var sceneW = scene.offsetWidth || 580;
+  var reps = LEVELS[level].reps;
+  var blockW = 36;
+  var connW = 12;
+  var totalW = reps*blockW + (reps-1)*connW;
+  var startX = (sceneW - totalW) / 2;
+  var blockCenterX = startX + repIdx*(blockW+connW) + blockW/2;
+  var marioLeft = Math.round(blockCenterX - 15);
+  marioWrap.style.left = marioLeft+'px';
+}
+
+function resetChain() {
+  repsDone = 0;
+  elapsed = 0;
+  combo = 0;
+  holding = false;
+  clearInterval(barTimer);
+  durFill.style.width = '0%';
+  durFill.className = 'dur-fill';
+  durPct.textContent = '0%';
+  document.getElementById('repDone').textContent = '0';
+  document.getElementById('repTotal').textContent = LEVELS[level].reps;
+  holdBtn.classList.remove('pressed');
+  holdBtn.textContent = '\uD83C\uDFA4 HOLD TO SPEAK!';
+  buildChain();
+  marioWrap.classList.remove('jump','bigjump');
+}
+
+function hitBlock(repIdx) {
+  var block = document.getElementById('cb'+repIdx);
+  if(!block) return;
+  block.textContent = '★';
+  block.className = 'chain-block hit';
+  setTimeout(function(){
+    if(block) block.className = 'chain-block combo';
+  }, 350);
+  // mario jump
+  marioWrap.classList.remove('jump','bigump');
+  void marioWrap.offsetWidth;
+  marioWrap.classList.add('jump');
+  setTimeout(function(){ marioWrap.classList.remove('jump'); }, 550);
+  // coin
+  coins++;
+  document.getElementById('coinCount').textContent = String(coins).padStart(3,'0');
+  showCoin('+1');
+  combo++;
+  if(combo > bestCombo){
+    bestCombo = combo;
+    document.getElementById('bestCombo').textContent = bestCombo;
+  }
+  // next block
+  var nextIdx = repIdx + 1;
+  if(nextIdx < LEVELS[level].reps){
+    var next = document.getElementById('cb'+nextIdx);
+    if(next) next.className = 'chain-block current';
+    positionMario(nextIdx);
+  }
+  repsDone++;
+  document.getElementById('repDone').textContent = repsDone;
+  if(repsDone >= LEVELS[level].reps){
+    setTimeout(finishChain, 400);
+  }
+}
+
+function finishChain() {
+  showCombo('CHAIN COMPLETE! ★');
+  statusBar.textContent = 'ALL REPS DONE! WAHOO! ★ PICK NEXT LEVEL!';
+  coins += 3;
+  document.getElementById('coinCount').textContent = String(coins).padStart(3,'0');
+  marioWrap.classList.remove('jump');
+  void marioWrap.offsetWidth;
+  marioWrap.classList.add('bigump');
+  setTimeout(function(){ marioWrap.classList.remove('bigump'); }, 750);
+}
+
+// CHILD MODE — hold button
+function startHold(e) {
+  if(e) e.preventDefault();
+  if(repsDone >= LEVELS[level].reps) return;
+  holding = true;
+  elapsed = 0;
+  holdBtn.classList.add('pressed');
+  holdBtn.textContent = 'KEEP GOING... "'+currentSound.toUpperCase()+'"';
+  var sec = LEVELS[level].sec;
+  barTimer = setInterval(function(){
+    elapsed += 60;
+    var pct = Math.min((elapsed/(sec*1000))*100, 100);
+    durFill.style.width = pct+'%';
+    durPct.textContent = Math.round(pct)+'%';
+    if(pct>=90) durFill.className='dur-fill full';
+    else if(pct>=60) durFill.className='dur-fill warn';
+    else durFill.className='dur-fill';
+    if(elapsed >= sec*1000){ clearInterval(barTimer); holdSuccess(); }
+  }, 60);
+  statusBar.textContent = 'HOLD IT... "'+currentSound.toUpperCase()+'"!';
+}
+
+function endHold(e) {
+  if(e) e.preventDefault();
+  if(!holding) return;
+  holding = false;
+  clearInterval(barTimer);
+  holdBtn.classList.remove('pressed');
+  holdBtn.textContent = '\uD83C\uDFA4 HOLD TO SPEAK!';
+  if(repsDone < LEVELS[level].reps && elapsed < LEVELS[level].sec*1000){
+    combo = 0;
+    statusBar.textContent = 'SO CLOSE! TRY AGAIN!';
+    durFill.style.width='0%'; durFill.className='dur-fill'; durPct.textContent='0%';
+  }
+}
+
+function holdSuccess() {
+  holding = false;
+  holdBtn.classList.remove('pressed');
+  holdBtn.textContent = '\uD83C\uDFA4 HOLD TO SPEAK!';
+  durFill.style.width='0%'; durFill.className='dur-fill'; durPct.textContent='0%';
+  hitBlock(repsDone);
+  if(repsDone < LEVELS[level].reps) statusBar.textContent = 'GREAT! REP '+(repsDone)+' DONE! KEEP GOING!';
+}
+
+// THERAPIST MODE
+function therapistGood() {
+  if(repsDone >= LEVELS[level].reps) return;
+  hitBlock(repsDone);
+  if(repsDone < LEVELS[level].reps) statusBar.textContent = 'GOOD REP! REP '+repsDone+' OF '+LEVELS[level].reps+'!';
+}
+function therapistRetry() {
+  combo = 0;
+  statusBar.textContent = 'TRY AGAIN — "'+currentSound.toUpperCase()+'"!';
+}
+function therapistModel() {
+  statusBar.textContent = 'THERAPIST MODELS — THEN CHILD HAS A GO!';
+}
+
+// UTILS
+function showCoin(txt) {
+  coinPop.textContent = txt||'+1';
+  coinPop.className='coin-pop';
+  void coinPop.offsetWidth;
+  coinPop.className='coin-pop show';
+}
+function showCombo(txt) {
+  comboBurst.textContent = txt||'COMBO!';
+  comboBurst.className='combo-burst';
+  void comboBurst.offsetWidth;
+  comboBurst.className='combo-burst show';
+}
+
+function resetAll() {
+  coins=0; bestCombo=0; combo=0;
+  document.getElementById('coinCount').textContent='000';
+  document.getElementById('bestCombo').textContent='0';
+  level=1; mode='child';
+  for(var i=1;i<=4;i++) document.getElementById('l'+i).className='ltab'+(i===1?' on':'');
+  document.getElementById('levelLabel').textContent='1';
+  document.getElementById('durTarget').textContent=LEVELS[1].sec;
+  document.getElementById('tabChild').className='tab active';
+  document.getElementById('tabTherapist').className='tab';
+  document.getElementById('childControls').style.display='block';
+  document.getElementById('therapistControls').style.display='none';
+  var badge=document.getElementById('modeBadge');
+  badge.textContent='CHILD CONTROLS'; badge.className='mode-badge child';
+  resetChain();
+  statusBar.textContent='PICK A LEVEL AND A SOUND — THEN START!';
+}
+
+// HOLD BUTTON EVENTS
+holdBtn.addEventListener('mousedown', startHold);
+holdBtn.addEventListener('mouseup', endHold);
+holdBtn.addEventListener('mouseleave', endHold);
+holdBtn.addEventListener('touchstart', startHold, {passive:false});
+holdBtn.addEventListener('touchend', endHold, {passive:false});
+holdBtn.addEventListener('touchcancel', endHold, {passive:false});
+
+// INIT
+buildChain();
+</script>
+
+
+</body></html>
