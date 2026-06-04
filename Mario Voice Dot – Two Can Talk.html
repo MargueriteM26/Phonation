@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<!-- saved from url=(0061)file:///Users/margueritegaynor/Downloads/mario_voice_dot.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mario Voice Dot – Two Can Talk</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Press+Start+2P&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:#f8f8f4;min-height:100vh;padding:12px;}
+.wrap{max-width:520px;margin:0 auto;}
+
+/* HEADER */
+.header{text-align:center;margin-bottom:16px;}
+.header h1{font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;color:#1a1a2e;letter-spacing:-0.5px;}
+.header p{font-size:13px;color:#888;margin-top:2px;}
+
+/* MODE TOGGLE */
+.mode-row{display:flex;gap:0;border-radius:50px;overflow:hidden;border:2px solid #e0e0e0;margin-bottom:16px;background:#fff;}
+.mode-btn{flex:1;padding:0.55rem;text-align:center;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;background:transparent;border:none;color:#aaa;transition:background 0.2s,color 0.2s;}
+.mode-btn.on{background:#1a1a2e;color:#fff;border-radius:50px;}
+
+/* ZONE SELECTOR */
+.zone-row{display:flex;gap:8px;margin-bottom:16px;}
+.zone-pill{
+  flex:1;padding:0.6rem 0.3rem;border-radius:50px;
+  border:2.5px solid transparent;
+  text-align:center;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;
+  cursor:pointer;transition:all 0.2s;background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,0.07);
+}
+.zone-pill.whisper{border-color:#B5D4F4;color:#185FA5;}
+.zone-pill.indoor{border-color:#b0e0b0;color:#2a6e1a;}
+.zone-pill.outside{border-color:#ffb3b0;color:#c0392b;}
+.zone-pill.whisper.on{background:#B5D4F4;color:#042C53;}
+.zone-pill.indoor.on{background:#b0e0b0;color:#1a4d00;}
+.zone-pill.outside.on{background:#ffb3b0;color:#7a1a1a;}
+
+/* DOT ARENA */
+.arena{
+  background:#fff;border-radius:24px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.08);
+  padding:24px 16px 20px;
+  margin-bottom:16px;
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;
+  min-height:280px;
+  justify-content:center;
+}
+
+/* zone ring */
+.zone-ring{
+  position:absolute;
+  border-radius:50%;
+  border:3px dashed #e0e0e0;
+  transition:border-color 0.4s, transform 0.4s;
+  pointer-events:none;
+}
+.ring-whisper{width:160px;height:160px;border-color:#B5D4F4;}
+.ring-indoor{width:220px;height:220px;border-color:#b0e0b0;}
+.ring-outside{width:280px;height:280px;border-color:#ffb3b0;}
+.ring-label{
+  position:absolute;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:10px;
+  pointer-events:none;
+}
+.ring-label.whisper{color:#185FA5;top:calc(50% - 80px - 14px);left:50%;transform:translateX(-50%);}
+.ring-label.indoor{color:#2a6e1a;top:calc(50% - 110px - 14px);left:50%;transform:translateX(-50%);}
+.ring-label.outside{color:#c0392b;top:calc(50% - 140px - 14px);left:50%;transform:translateX(-50%);}
+
+/* THE DOT */
+.dot-wrap{
+  position:relative;z-index:10;
+  display:flex;align-items:center;justify-content:center;
+  width:300px;height:300px;
+}
+.dot{
+  border-radius:50%;
+  width:40px;height:40px;
+  background:#e0e0e0;
+  transition:width 0.08s ease, height 0.08s ease, background 0.3s ease, box-shadow 0.3s ease;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 0 rgba(0,0,0,0);
+  position:absolute;
+}
+.dot.zone-whisper{
+  background:#5BCEFA;
+  box-shadow:0 0 30px 6px #B5D4F488;
+}
+.dot.zone-indoor{
+  background:#4CAF50;
+  box-shadow:0 0 40px 10px #b0e0b088;
+}
+.dot.zone-outside{
+  background:#E24B4A;
+  box-shadow:0 0 50px 14px #ffb3b088;
+}
+.dot.burst{
+  animation:dotburst 0.5s ease forwards;
+}
+@keyframes dotburst{
+  0%{transform:scale(1);}
+  50%{transform:scale(1.15);}
+  100%{transform:scale(1);}
+}
+
+.dot-icon{font-size:18px;position:relative;z-index:2;}
+
+/* coin burst */
+.coin-burst{
+  position:absolute;
+  font-family:'Press Start 2P',cursive;
+  font-size:14px;color:#F4A823;
+  opacity:0;pointer-events:none;
+  text-shadow:2px 2px 0 #7A4900;
+  top:30%;left:50%;transform:translate(-50%,-50%);
+  z-index:20;white-space:nowrap;
+}
+.coin-burst.show{animation:coinburst 1s ease forwards;}
+@keyframes coinburst{
+  0%{opacity:1;transform:translate(-50%,-50%) scale(0.8);}
+  40%{opacity:1;transform:translate(-50%,-80%) scale(1.2);}
+  100%{opacity:0;transform:translate(-50%,-120%) scale(1);}
+}
+
+/* DURATION BAR */
+.dur-section{width:100%;margin-top:8px;}
+.dur-track{
+  height:10px;background:#eee;border-radius:10px;overflow:hidden;
+  position:relative;
+}
+.dur-fill{
+  height:100%;border-radius:10px;width:0%;
+  background:#e0e0e0;
+  transition:width 0.06s linear, background 0.3s;
+}
+.dur-labels{display:flex;justify-content:space-between;margin-top:4px;}
+.dur-labels span{font-size:10px;color:#bbb;font-weight:700;}
+
+/* STATUS TEXT */
+.status-text{
+  text-align:center;font-family:'Nunito',sans-serif;font-weight:800;
+  font-size:14px;color:#555;min-height:22px;margin-bottom:12px;
+}
+
+/* HOLD BUTTON */
+.hold-btn{
+  width:100%;padding:1rem;border-radius:50px;
+  border:none;
+  background:#1a1a2e;color:#fff;
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;
+  cursor:pointer;
+  box-shadow:0 5px 0 #0a0a1a;
+  transition:transform 0.1s,box-shadow 0.1s,background 0.2s;
+  user-select:none;-webkit-user-select:none;touch-action:none;
+  margin-bottom:10px;
+  letter-spacing:0.3px;
+}
+.hold-btn.pressed{
+  transform:translateY(5px);box-shadow:0 0 0 #0a0a1a;
+}
+.hold-btn.whisper-active{background:#185FA5;box-shadow:0 5px 0 #0a3566;}
+.hold-btn.indoor-active{background:#2a6e1a;box-shadow:0 5px 0 #0f3a08;}
+.hold-btn.outside-active{background:#c0392b;box-shadow:0 5px 0 #7a1a1a;}
+
+/* THERAPIST BUTTONS */
+.therapist-row{display:flex;gap:8px;margin-bottom:10px;}
+.t-btn{
+  flex:1;padding:0.7rem 0.3rem;border-radius:14px;
+  border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;
+  cursor:pointer;transition:transform 0.1s,box-shadow 0.1s;
+  box-shadow:0 4px 0 rgba(0,0,0,0.15);
+}
+.t-btn:active{transform:translateY(4px);box-shadow:0 0 0 rgba(0,0,0,0.15);}
+.t-good{background:#4CAF50;color:#fff;box-shadow:0 4px 0 #2a6e1a;}
+.t-retry{background:#E24B4A;color:#fff;box-shadow:0 4px 0 #a32d2d;}
+.t-model{background:#F4A823;color:#fff;box-shadow:0 4px 0 #7A4900;}
+.t-reset{background:#eee;color:#555;box-shadow:0 4px 0 #ccc;}
+
+/* LEVEL ROW */
+.level-row{display:flex;gap:6px;margin-bottom:14px;}
+.level-btn{
+  flex:1;padding:0.45rem 0.2rem;border-radius:10px;
+  border:2px solid #e0e0e0;background:#fff;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;
+  color:#aaa;cursor:pointer;text-align:center;
+  transition:border-color 0.15s,color 0.15s,background 0.15s;
+}
+.level-btn.on{border-color:#1a1a2e;background:#1a1a2e;color:#fff;}
+
+/* SCORE ROW */
+.score-row{
+  display:flex;gap:10px;
+}
+.score-card{
+  flex:1;background:#fff;border-radius:14px;padding:0.6rem 0.5rem;
+  text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);
+}
+.score-card .sc-val{font-family:'Press Start 2P',cursive;font-size:14px;color:#1a1a2e;}
+.score-card .sc-label{font-size:10px;color:#aaa;font-weight:700;margin-top:3px;}
+
+/* SOUND ROW */
+.sound-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.sound-chip{
+  padding:0.35rem 0.8rem;border-radius:50px;
+  border:2px solid #e0e0e0;background:#fff;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;
+  color:#aaa;cursor:pointer;transition:all 0.15s;
+}
+.sound-chip.on{border-color:#1a1a2e;background:#1a1a2e;color:#fff;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <h1>🎮 Mario Voice Dot</h1>
+    <p>Hold your voice — watch the dot grow!</p>
+  </div>
+
+  <!-- MODE -->
+  <div class="mode-row">
+    <button class="mode-btn on" id="modeChild" onclick="setMode(&#39;child&#39;)">🎮 Child</button>
+    <button class="mode-btn" id="modeTherapist" onclick="setMode(&#39;therapist&#39;)">👩‍⚕️ Therapist</button>
+  </div>
+
+  <!-- LEVEL -->
+  <div class="level-row">
+    <button class="level-btn on" id="lv1" onclick="setLevel(1)">⭐ 2s</button>
+    <button class="level-btn" id="lv2" onclick="setLevel(2)">🌟 3s</button>
+    <button class="level-btn" id="lv3" onclick="setLevel(3)">👑 4s</button>
+    <button class="level-btn" id="lv4" onclick="setLevel(4)">🏆 5s</button>
+  </div>
+
+  <!-- SOUND -->
+  <div class="sound-row" id="soundRow">
+    <button class="sound-chip on" onclick="setSound(this,&#39;Aaah&#39;)">Aaah</button>
+    <button class="sound-chip" onclick="setSound(this,&#39;Mmmm&#39;)">Mmmm</button>
+    <button class="sound-chip" onclick="setSound(this,&#39;Oooh&#39;)">Oooh</button>
+    <button class="sound-chip" onclick="setSound(this,&#39;Eeee&#39;)">Eeee</button>
+    <button class="sound-chip" onclick="setSound(this,&#39;Ssss&#39;)">Ssss</button>
+  </div>
+
+  <!-- ZONE SELECT -->
+  <div class="zone-row">
+    <div class="zone-pill whisper" id="zpWhisper" onclick="setZone(&#39;whisper&#39;)">🤫 Whisper</div>
+    <div class="zone-pill indoor on" id="zpIndoor" onclick="setZone(&#39;indoor&#39;)">🏠 Indoor</div>
+    <div class="zone-pill outside" id="zpOutside" onclick="setZone(&#39;outside&#39;)">📣 Outside</div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-text" id="statusText">🏠 Indoor — hold the button and say "Aaah"!</div>
+
+  <!-- ARENA -->
+  <div class="arena" id="arena">
+    <div class="zone-ring ring-whisper"></div>
+    <div class="zone-ring ring-indoor"></div>
+    <div class="zone-ring ring-outside"></div>
+    <div class="ring-label whisper">Whisper</div>
+    <div class="ring-label indoor">Indoor</div>
+    <div class="ring-label outside">Outside</div>
+    <div class="dot-wrap">
+      <div class="dot" id="dot" style="width: 40px; height: 40px;">
+        <span class="dot-icon" id="dotIcon" style="opacity: 1;">🎤</span>
+      </div>
+    </div>
+    <div class="dur-section">
+      <div class="dur-track"><div class="dur-fill" id="durFill" style="width: 0%; background: rgb(224, 224, 224);"></div></div>
+      <div class="dur-labels"><span id="durLeft">0s</span><span id="durRight">2s</span></div>
+    </div>
+    <div class="coin-burst" id="coinBurst">★ WAHOO! ★</div>
+  </div>
+
+  <!-- CHILD CONTROLS -->
+  <div id="childControls">
+    <button class="hold-btn" id="holdBtn">🎤 Hold to speak!</button>
+  </div>
+
+  <!-- THERAPIST CONTROLS -->
+  <div id="therapistControls" style="display:none;">
+    <div class="therapist-row">
+      <button class="t-btn t-good" onclick="tGood()">✓ Good!</button>
+      <button class="t-btn t-retry" onclick="tRetry()">↩ Again</button>
+      <button class="t-btn t-model" onclick="tModel()">👂 Model</button>
+      <button class="t-btn t-reset" onclick="resetDot()">↺ Reset</button>
+    </div>
+  </div>
+
+  <!-- SCORE -->
+  <div class="score-row">
+    <div class="score-card">
+      <div class="sc-val" id="scCoins">0</div>
+      <div class="sc-label">⭐ Stars</div>
+    </div>
+    <div class="score-card">
+      <div class="sc-val" id="scBest">0s</div>
+      <div class="sc-label">Best hold</div>
+    </div>
+    <div class="score-card">
+      <div class="sc-val" id="scZone">Indoor</div>
+      <div class="sc-label">Zone</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var mode = 'child';
+var level = 1;
+var zone = 'indoor';
+var sound = 'Aaah';
+var holding = false;
+var elapsed = 0;
+var barTimer = null;
+var stars = 0;
+var bestHold = 0;
+
+var LEVEL_SECS = {1:2, 2:3, 3:4, 4:5};
+var ZONE_COLOURS = {whisper:'zone-whisper', indoor:'zone-indoor', outside:'zone-outside'};
+var ZONE_LABELS = {whisper:'🤫 Whisper', indoor:'🏠 Indoor', outside:'📣 Outside'};
+
+// dot sizing: grows from 40px to 200px over duration
+var MIN_DOT = 40;
+var MAX_DOT = 200;
+
+var dot = document.getElementById('dot');
+var dotIcon = document.getElementById('dotIcon');
+var durFill = document.getElementById('durFill');
+var durLeft = document.getElementById('durLeft');
+var durRight = document.getElementById('durRight');
+var statusText = document.getElementById('statusText');
+var holdBtn = document.getElementById('holdBtn');
+var coinBurst = document.getElementById('coinBurst');
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('modeChild').className = 'mode-btn'+(m==='child'?' on':'');
+  document.getElementById('modeTherapist').className = 'mode-btn'+(m==='therapist'?' on':'');
+  document.getElementById('childControls').style.display = m==='child'?'block':'none';
+  document.getElementById('therapistControls').style.display = m==='therapist'?'block':'none';
+  resetDot();
+}
+
+function setLevel(l) {
+  level = l;
+  for(var i=1;i<=4;i++) document.getElementById('lv'+i).className='level-btn'+(i===l?' on':'');
+  document.getElementById('durRight').textContent = LEVEL_SECS[l]+'s';
+  resetDot();
+}
+
+function setSound(btn, s) {
+  sound = s;
+  var chips = document.querySelectorAll('.sound-chip');
+  for(var i=0;i<chips.length;i++) chips[i].classList.remove('on');
+  btn.classList.add('on');
+  statusText.textContent = 'Sound: "'+s+'" — hold to go!';
+}
+
+function setZone(z) {
+  zone = z;
+  var pills = ['Whisper','Indoor','Outside'];
+  pills.forEach(function(p){
+    var el = document.getElementById('zp'+p);
+    el.classList.remove('on');
+    if(p.toLowerCase()===z) el.classList.add('on');
+  });
+  document.getElementById('scZone').textContent = z.charAt(0).toUpperCase()+z.slice(1);
+  resetDot();
+  statusText.textContent = ZONE_LABELS[z]+' — hold the button and say "'+sound+'"!';
+}
+
+function updateDot(pct) {
+  var size = MIN_DOT + (MAX_DOT - MIN_DOT) * (pct/100);
+  dot.style.width = size+'px';
+  dot.style.height = size+'px';
+  dot.className = 'dot '+ZONE_COLOURS[zone];
+  // icon hides as dot grows
+  dotIcon.style.opacity = Math.max(0, 1 - pct/40);
+}
+
+function resetDot() {
+  holding = false;
+  clearInterval(barTimer);
+  elapsed = 0;
+  dot.style.width = MIN_DOT+'px';
+  dot.style.height = MIN_DOT+'px';
+  dot.className = 'dot';
+  dotIcon.style.opacity = '1';
+  durFill.style.width = '0%';
+  durFill.style.background = '#e0e0e0';
+  durLeft.textContent = '0s';
+  durRight.textContent = LEVEL_SECS[level]+'s';
+  holdBtn.className = 'hold-btn';
+  holdBtn.textContent = '🎤 Hold to speak!';
+}
+
+function startHold(e) {
+  if(e) e.preventDefault();
+  if(holding) return;
+  holding = true;
+  elapsed = 0;
+  var sec = LEVEL_SECS[level];
+  holdBtn.classList.add('pressed', zone+'-active');
+  holdBtn.textContent = '🎤 Keep going... "'+sound+'"';
+  statusText.textContent = 'Holding... keep that voice going!';
+
+  var zoneColours = {whisper:'#5BCEFA', indoor:'#4CAF50', outside:'#E24B4A'};
+
+  barTimer = setInterval(function(){
+    elapsed += 60;
+    var pct = Math.min((elapsed/(sec*1000))*100, 100);
+    updateDot(pct);
+    durFill.style.width = pct+'%';
+    durFill.style.background = zoneColours[zone];
+    durLeft.textContent = (elapsed/1000).toFixed(1)+'s';
+    if(elapsed >= sec*1000) {
+      clearInterval(barTimer);
+      holdSuccess();
+    }
+  }, 60);
+}
+
+function endHold(e) {
+  if(e) e.preventDefault();
+  if(!holding) return;
+  holding = false;
+  clearInterval(barTimer);
+  holdBtn.classList.remove('pressed','whisper-active','indoor-active','outside-active');
+  holdBtn.textContent = '🎤 Hold to speak!';
+  var reached = elapsed/1000;
+  if(reached < LEVEL_SECS[level]) {
+    statusText.textContent = 'So close! Held for '+reached.toFixed(1)+'s — try again!';
+    // shrink dot back slowly
+    setTimeout(function(){ resetDot(); }, 1200);
+  }
+}
+
+function holdSuccess() {
+  holding = false;
+  holdBtn.classList.remove('pressed','whisper-active','indoor-active','outside-active');
+  holdBtn.textContent = '🎤 Hold to speak!';
+  var held = LEVEL_SECS[level];
+  if(held > bestHold) {
+    bestHold = held;
+    document.getElementById('scBest').textContent = held+'s';
+  }
+  stars++;
+  document.getElementById('scCoins').textContent = stars;
+  showBurst();
+  dot.classList.add('burst');
+  setTimeout(function(){ dot.classList.remove('burst'); }, 500);
+  statusText.textContent = '★ Amazing! Held for '+held+'s in '+ZONE_LABELS[zone]+' voice!';
+  setTimeout(function(){ resetDot(); }, 2000);
+}
+
+function showBurst() {
+  coinBurst.className = 'coin-burst';
+  void coinBurst.offsetWidth;
+  coinBurst.className = 'coin-burst show';
+}
+
+// THERAPIST
+function tGood() {
+  // simulate a full hold for therapist mode
+  var sec = LEVEL_SECS[level];
+  var steps = 20;
+  var i = 0;
+  var zoneColours = {whisper:'#5BCEFA', indoor:'#4CAF50', outside:'#E24B4A'};
+  var interval = setInterval(function(){
+    i++;
+    var pct = (i/steps)*100;
+    updateDot(pct);
+    durFill.style.width = pct+'%';
+    durFill.style.background = zoneColours[zone];
+    durLeft.textContent = ((i/steps)*sec).toFixed(1)+'s';
+    if(i >= steps){
+      clearInterval(interval);
+      holdSuccess();
+    }
+  }, 60);
+}
+function tRetry() {
+  resetDot();
+  statusText.textContent = 'Try again — "'+sound+'" in '+ZONE_LABELS[zone]+' voice!';
+}
+function tModel() {
+  resetDot();
+  statusText.textContent = 'Therapist models first — then child\'s turn!';
+}
+
+// HOLD BUTTON EVENTS
+holdBtn.addEventListener('mousedown', startHold);
+holdBtn.addEventListener('mouseup', endHold);
+holdBtn.addEventListener('mouseleave', endHold);
+holdBtn.addEventListener('touchstart', startHold, {passive:false});
+holdBtn.addEventListener('touchend', endHold, {passive:false});
+holdBtn.addEventListener('touchcancel', endHold, {passive:false});
+
+// INIT
+setZone('indoor');
+document.getElementById('durRight').textContent = '2s';
+</script>
+
+
+</body></html>
