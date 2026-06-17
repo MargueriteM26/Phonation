@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Volcano CV – Two Can Talk</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:#0d0d1a;min-height:100vh;padding:10px;color:#fff;}
+.wrap{max-width:520px;margin:0 auto;}
+
+/* HEADER */
+.header{text-align:center;padding:10px 0 8px;}
+.header h1{font-size:20px;font-weight:900;color:#fff;letter-spacing:-0.3px;}
+.header p{font-size:12px;color:#888;margin-top:2px;}
+
+/* VOLCANO SCENE */
+.scene{
+  position:relative;width:100%;height:320px;
+  border-radius:20px;overflow:hidden;
+  margin-bottom:14px;
+  background:linear-gradient(180deg,#0d0d2e 0%,#1a0a2e 40%,#2a0a0a 100%);
+  border:2px solid #2a1a1a;
+}
+
+/* STARS */
+.stars{position:absolute;top:0;left:0;right:0;height:160px;pointer-events:none;}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle 2s infinite alternate;}
+@keyframes twinkle{from{opacity:0.2;}to{opacity:0.9;}}
+
+/* MOON */
+.moon{
+  position:absolute;top:18px;right:30px;
+  width:38px;height:38px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#ffe8a0,#c8a840);
+  box-shadow:0 0 20px #ffe8a044;
+}
+
+/* LAVA GLOW (background) */
+.lava-glow{
+  position:absolute;bottom:0;left:0;right:0;
+  height:60px;
+  background:radial-gradient(ellipse at 50% 100%,#ff440088 0%,transparent 70%);
+  transition:height 0.5s ease, opacity 0.5s ease;
+  opacity:0.3;
+  pointer-events:none;
+}
+
+/* VOLCANO SHAPE */
+.volcano-wrap{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:320px;
+}
+.volcano-svg{width:100%;display:block;}
+
+/* LAVA FILL inside crater */
+.lava-container{
+  position:absolute;
+  bottom:62px;
+  left:50%;transform:translateX(-50%);
+  width:88px;
+  overflow:hidden;
+  border-radius:4px 4px 0 0;
+}
+.lava-fill{
+  width:100%;
+  height:0px;
+  background:linear-gradient(180deg,#ff8800,#ff4400,#cc2200);
+  transition:height 0.6s cubic-bezier(.4,1.2,.6,1);
+  position:relative;
+}
+.lava-surface{
+  position:absolute;top:0;left:0;right:0;height:8px;
+  background:linear-gradient(180deg,#ffaa00,#ff6600);
+  border-radius:50% 50% 0 0;
+  animation:lavasurface 1.2s ease-in-out infinite alternate;
+}
+@keyframes lavasurface{
+  from{transform:scaleX(1) translateY(0);}
+  to{transform:scaleX(1.04) translateY(-2px);}
+}
+.lava-bubbles{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;}
+.bubble{
+  position:absolute;border-radius:50%;
+  background:#ff8800;
+  animation:bubble 1.5s ease-in-out infinite;
+  opacity:0;
+}
+@keyframes bubble{
+  0%{opacity:0;transform:translateY(0) scale(0.5);}
+  50%{opacity:0.7;}
+  100%{opacity:0;transform:translateY(-20px) scale(1.2);}
+}
+
+/* LAVA LEVEL MARKER */
+.level-markers{
+  position:absolute;
+  bottom:62px;
+  left:50%;transform:translateX(-50%);
+  width:110px;
+  pointer-events:none;
+}
+.lv-mark{
+  position:absolute;left:0;right:0;
+  display:flex;align-items:center;gap:4px;
+}
+.lv-mark .lm-line{flex:1;height:1px;background:rgba(255,255,255,0.2);}
+.lv-mark .lm-label{font-size:8px;font-weight:800;color:rgba(255,255,255,0.4);white-space:nowrap;}
+
+/* ERUPTION */
+.eruption{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  pointer-events:none;
+  display:none;
+}
+.eruption.active{display:block;}
+.lava-particle{
+  position:absolute;
+  border-radius:50%;
+  background:#ff6600;
+  animation:lavafly 1.2s ease-out forwards;
+}
+@keyframes lavafly{
+  0%{transform:translate(0,0) scale(1);opacity:1;}
+  100%{transform:translate(var(--tx),var(--ty)) scale(0.3);opacity:0;}
+}
+.ash-cloud{
+  position:absolute;
+  border-radius:50%;
+  background:#555;
+  opacity:0;
+  animation:ashrise 2s ease-out forwards;
+}
+@keyframes ashrise{
+  0%{opacity:0.8;transform:scale(0.5) translateY(0);}
+  100%{opacity:0;transform:scale(2.5) translateY(-80px);}
+}
+.erupt-flash{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 80%,#ff880066,transparent 60%);
+  opacity:0;
+  animation:eruptflash 0.5s ease-out forwards;
+}
+@keyframes eruptflash{0%{opacity:1;}100%{opacity:0;}}
+
+/* SMOKE */
+.smoke{
+  position:absolute;
+  top:10px;left:50%;
+  width:20px;height:20px;
+  border-radius:50%;
+  background:rgba(180,160,160,0.3);
+  animation:smokerise 3s ease-out infinite;
+  transform-origin:bottom center;
+}
+.smoke:nth-child(2){animation-delay:1s;left:calc(50% - 8px);}
+.smoke:nth-child(3){animation-delay:2s;left:calc(50% + 8px);}
+@keyframes smokerise{
+  0%{opacity:0.4;transform:scale(0.5) translateY(0);}
+  100%{opacity:0;transform:scale(2) translateY(-60px);}
+}
+
+/* PANEL */
+.panel{background:#1a1a2e;border-radius:18px;padding:14px;margin-bottom:12px;border:1.5px solid #2a2a4a;}
+
+/* LEVEL & SOUND */
+.row-label{font-size:11px;font-weight:800;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+.level-row{display:flex;gap:6px;margin-bottom:12px;}
+.level-btn{
+  flex:1;padding:0.45rem 0.2rem;border-radius:10px;
+  border:2px solid #2a2a4a;background:#0d0d1a;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;
+  color:#555;cursor:pointer;text-align:center;transition:all 0.15s;
+}
+.level-btn.on{border-color:#ff6600;background:#2a1000;color:#ff8800;}
+
+.sound-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.sound-chip{
+  padding:0.3rem 0.75rem;border-radius:50px;
+  border:2px solid #2a2a4a;background:#0d0d1a;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;
+  color:#555;cursor:pointer;transition:all 0.15s;
+}
+.sound-chip.on{border-color:#ff6600;background:#2a1000;color:#ff8800;}
+
+/* ZONE PILLS */
+.zone-row{display:flex;gap:6px;margin-bottom:12px;}
+.zone-pill{
+  flex:1;padding:0.6rem 0.3rem;border-radius:12px;
+  border:2px solid #2a2a4a;background:#0d0d1a;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;
+  color:#555;cursor:pointer;text-align:center;transition:all 0.15s;
+  line-height:1.5;
+}
+.zone-pill .zp-icon{font-size:20px;display:block;margin-bottom:2px;}
+.zone-pill .zp-ctx{font-size:9px;font-weight:700;opacity:0.6;display:block;}
+.zone-pill.whisper.on{border-color:#5BCEFA;background:#001a2a;color:#5BCEFA;}
+.zone-pill.indoor.on{border-color:#4CAF50;background:#001a00;color:#4CAF50;}
+.zone-pill.outside.on{border-color:#ff6600;background:#2a1000;color:#ff8800;}
+
+/* PROGRESS */
+.progress-section{
+  display:flex;align-items:center;gap:12px;
+  background:#0d0d1a;border-radius:12px;padding:10px 14px;
+  margin-bottom:12px;border:1.5px solid #2a2a4a;
+}
+.rep-display{text-align:center;min-width:54px;}
+.rep-num{font-size:28px;font-weight:900;color:#ff8800;line-height:1;}
+.rep-sub{font-size:10px;color:#555;font-weight:700;margin-top:2px;}
+.rep-dots{display:flex;gap:5px;margin-top:6px;justify-content:center;flex-wrap:wrap;}
+.rep-dot{width:10px;height:10px;border-radius:50%;background:#2a2a4a;transition:background 0.3s;}
+.rep-dot.done{background:#ff6600;}
+.rep-dot.current{background:#ff8800;animation:dotpulse 0.6s infinite alternate;}
+@keyframes dotpulse{from{box-shadow:0 0 0 0 #ff880088;}to{box-shadow:0 0 0 4px #ff880022;}}
+
+/* STATUS */
+.status-text{
+  text-align:center;font-size:13px;font-weight:800;
+  color:#888;min-height:20px;margin-bottom:10px;
+}
+
+/* THERAPIST BUTTONS */
+.t-row{display:flex;gap:8px;margin-bottom:8px;}
+.t-btn{
+  flex:1;padding:0.8rem 0.3rem;border-radius:14px;border:none;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;
+  cursor:pointer;transition:transform 0.1s,box-shadow 0.1s;
+  box-shadow:0 4px 0 rgba(0,0,0,0.3);text-align:center;line-height:1.4;
+}
+.t-btn:active{transform:translateY(4px);box-shadow:0 0 0 rgba(0,0,0,0.3);}
+.t-good{background:#ff6600;color:#fff;box-shadow:0 4px 0 #993300;}
+.t-retry{background:#2a2a4a;color:#aaa;box-shadow:0 4px 0 #111122;}
+.t-model-w{background:#1a3a4a;color:#5BCEFA;box-shadow:0 4px 0 #0a1a2a;font-size:11px;}
+.t-model-i{background:#1a3a1a;color:#4CAF50;box-shadow:0 4px 0 #0a1a0a;font-size:11px;}
+.t-model-o{background:#2a1800;color:#ff8800;box-shadow:0 4px 0 #110800;font-size:11px;}
+.t-reset{background:#1a1a2e;color:#555;box-shadow:0 4px 0 #0a0a18;border:1.5px solid #2a2a4a;}
+
+/* MODEL INDICATOR */
+.model-indicator{
+  border-radius:14px;padding:10px 14px;
+  margin-bottom:10px;display:none;
+  align-items:center;gap:10px;
+  border:2px solid transparent;
+}
+.model-indicator.show{display:flex;}
+.model-indicator.whisper{background:#001a2a;border-color:#5BCEFA;}
+.model-indicator.indoor{background:#001a00;border-color:#4CAF50;}
+.model-indicator.outside{background:#2a1000;border-color:#ff6600;}
+.mi-icon{font-size:28px;flex-shrink:0;}
+.mi-text .mi-head{font-size:13px;font-weight:900;display:block;}
+.mi-text .mi-sub{font-size:11px;font-weight:700;opacity:0.6;display:block;margin-top:1px;}
+.mi-text.whisper .mi-head{color:#5BCEFA;}
+.mi-text.indoor .mi-head{color:#4CAF50;}
+.mi-text.outside .mi-head{color:#ff8800;}
+.mi-close{margin-left:auto;color:#555;cursor:pointer;font-size:16px;padding:4px;}
+
+/* SCORE */
+.score-row{display:flex;gap:8px;}
+.score-card{
+  flex:1;background:#1a1a2e;border-radius:12px;
+  padding:0.6rem 0.5rem;text-align:center;
+  border:1.5px solid #2a2a4a;
+}
+.sc-val{font-size:18px;font-weight:900;color:#ff8800;}
+.sc-label{font-size:9px;color:#555;font-weight:700;margin-top:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <h1>🌋 Volcano CV</h1>
+    <p>Say the syllable — fill the volcano!</p>
+  </div>
+
+  <!-- SCENE -->
+  <div class="scene" id="scene">
+    <!-- stars -->
+    <div class="stars" id="stars"></div>
+    <div class="moon"></div>
+
+    <!-- smoke -->
+    <div style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;" id="smokeWrap">
+      <div class="smoke"></div>
+      <div class="smoke"></div>
+      <div class="smoke"></div>
+    </div>
+
+    <!-- lava glow -->
+    <div class="lava-glow" id="lavaGlow"></div>
+
+    <!-- volcano SVG -->
+    <div class="volcano-wrap">
+      <svg class="volcano-svg" viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- volcano body -->
+        <path d="M160 10 L260 200 L60 200 Z" fill="#3a1a0a"/>
+        <path d="M160 10 L240 180 L80 180 Z" fill="#4a2010"/>
+        <!-- crater rim -->
+        <ellipse cx="160" cy="20" rx="44" ry="12" fill="#5a2a18"/>
+        <ellipse cx="160" cy="18" rx="40" ry="10" fill="#6a3020"/>
+        <!-- rock detail -->
+        <path d="M100 160 Q120 150 140 165 Q160 155 180 165 Q200 150 220 160" stroke="#2a1008" stroke-width="3" fill="none"/>
+        <path d="M80 185 Q110 175 140 182 Q170 172 200 182 Q230 175 250 185" stroke="#2a1008" stroke-width="2" fill="none"/>
+        <!-- ground -->
+        <rect x="0" y="190" width="320" height="10" fill="#1a0a04"/>
+      </svg>
+    </div>
+
+    <!-- lava fill in crater -->
+    <div class="lava-container" id="lavaContainer" style="height:80px;">
+      <div class="lava-fill" id="lavaFill">
+        <div class="lava-surface"></div>
+        <div class="lava-bubbles">
+          <div class="bubble" style="left:20%;width:6px;height:6px;animation-delay:0s;animation-duration:1.8s;"></div>
+          <div class="bubble" style="left:50%;width:8px;height:8px;animation-delay:0.6s;animation-duration:1.4s;"></div>
+          <div class="bubble" style="left:75%;width:5px;height:5px;animation-delay:1.1s;animation-duration:2s;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- level markers -->
+    <div class="level-markers" id="levelMarkers"></div>
+
+    <!-- eruption layer -->
+    <div class="eruption" id="eruption"></div>
+  </div>
+
+  <!-- PANEL -->
+  <div class="panel">
+
+    <!-- MODE -->
+    <div class="row-label">Mode</div>
+    <div style="display:flex;gap:0;border-radius:50px;overflow:hidden;border:2px solid #2a2a4a;margin-bottom:12px;background:#0d0d1a;">
+      <button id="modeChildBtn" onclick="setMode('child')" style="flex:1;padding:0.5rem;border:none;background:#ff6600;color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;border-radius:50px;">🎮 Child</button>
+      <button id="modeTherapistBtn" onclick="setMode('therapist')" style="flex:1;padding:0.5rem;border:none;background:transparent;color:#555;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;">👩‍⚕️ Therapist</button>
+    </div>
+
+    <!-- CONSONANT FAMILY -->
+    <div class="row-label">Consonant family</div>
+    <div class="sound-row" id="familyRow">
+      <button class="sound-chip on" onclick="setFamily(this,'voiced')">b d g m n</button>
+      <button class="sound-chip" onclick="setFamily(this,'voiceless')">p t k</button>
+      <button class="sound-chip" onclick="setFamily(this,'fricative')">f s sh</button>
+      <button class="sound-chip" onclick="setFamily(this,'nasal')">m n ng</button>
+    </div>
+
+    <!-- VOWEL -->
+    <div class="row-label">Vowel</div>
+    <div class="sound-row" id="vowelRow">
+      <button class="sound-chip on" onclick="setVowel(this,'a')">a</button>
+      <button class="sound-chip" onclick="setVowel(this,'ee')">ee</button>
+      <button class="sound-chip" onclick="setVowel(this,'oo')">oo</button>
+      <button class="sound-chip" onclick="setVowel(this,'oh')">oh</button>
+      <button class="sound-chip" onclick="setVowel(this,'i')">i</button>
+    </div>
+
+    <!-- BIG SYLLABLE DISPLAY -->
+    <div id="syllableCard" style="background:#0d0d1a;border:2px solid #ff6600;border-radius:16px;padding:14px 10px;margin-bottom:12px;text-align:center;">
+      <div style="font-size:10px;font-weight:800;color:#555;letter-spacing:1px;margin-bottom:6px;">SAY THIS SYLLABLE</div>
+      <div id="syllableDisplay" style="font-size:52px;font-weight:900;color:#ff8800;line-height:1;letter-spacing:2px;">ba</div>
+      <div id="syllableHint" style="font-size:12px;color:#555;font-weight:700;margin-top:6px;">lips together → open</div>
+      <div style="display:flex;gap:6px;justify-content:center;margin-top:10px;" id="syllableNav">
+        <button onclick="prevSyl()" style="padding:0.35rem 0.8rem;border-radius:50px;border:2px solid #2a2a4a;background:#1a1a2e;color:#ff8800;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;">◀ Prev</button>
+        <span id="sylCounter" style="font-size:11px;font-weight:800;color:#555;align-self:center;min-width:36px;text-align:center;">1/6</span>
+        <button onclick="nextSyl()" style="padding:0.35rem 0.8rem;border-radius:50px;border:none;background:#ff6600;color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;">Next ▶</button>
+      </div>
+    </div>
+
+    <!-- REPS -->
+    <div class="row-label">Number of reps</div>
+    <div class="level-row">
+      <button class="level-btn" id="r3" onclick="setReps(3)">3 reps</button>
+      <button class="level-btn on" id="r4" onclick="setReps(4)">4 reps</button>
+      <button class="level-btn" id="r5" onclick="setReps(5)">5 reps</button>
+      <button class="level-btn" id="r6" onclick="setReps(6)">6 reps</button>
+    </div>
+
+    <!-- ZONE -->
+    <div class="row-label">Volume zone</div>
+    <div class="zone-row">
+      <div class="zone-pill whisper" id="zpWhisper" onclick="setZone('whisper')">
+        <span class="zp-icon">🤫</span>Whisper<span class="zp-ctx">library / secret</span>
+      </div>
+      <div class="zone-pill indoor on" id="zpIndoor" onclick="setZone('indoor')">
+        <span class="zp-icon">🏠</span>Indoor<span class="zp-ctx">classroom / home</span>
+      </div>
+      <div class="zone-pill outside" id="zpOutside" onclick="setZone('outside')">
+        <span class="zp-icon">📣</span>Outside<span class="zp-ctx">playground / street</span>
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-section">
+      <div class="rep-display">
+        <div class="rep-num"><span id="repDone">0</span>/<span id="repTotal">4</span></div>
+        <div class="rep-sub">REPS</div>
+        <div class="rep-dots" id="repDots"></div>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:11px;font-weight:800;color:#555;margin-bottom:4px;">LAVA LEVEL</div>
+        <div style="height:12px;background:#0d0d1a;border-radius:10px;overflow:hidden;border:1.5px solid #2a2a4a;">
+          <div id="lavaBar" style="height:100%;border-radius:10px;width:0%;background:linear-gradient(90deg,#cc2200,#ff6600,#ff8800);transition:width 0.5s ease;"></div>
+        </div>
+        <div style="font-size:10px;color:#555;margin-top:3px;font-weight:700;" id="lavaBarLabel">0 / 4 reps complete</div>
+      </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="status-text" id="statusText">Pick a consonant family and vowel — then go!</div>
+
+    <!-- CHILD MODE BUTTON -->
+    <div id="childControls">
+      <button id="childTapBtn" onclick="childTap()" style="width:100%;padding:1rem;border-radius:14px;border:none;background:#ff6600;color:#fff;font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;cursor:pointer;box-shadow:0 5px 0 #993300;margin-bottom:8px;transition:transform 0.1s,box-shadow 0.1s;" onmousedown="this.style.transform='translateY(5px)';this.style.boxShadow='0 0 0 #993300'" onmouseup="this.style.transform='';this.style.boxShadow='0 5px 0 #993300'" ontouchstart="this.style.transform='translateY(5px)';this.style.boxShadow='0 0 0 #993300'" ontouchend="this.style.transform='';this.style.boxShadow='0 5px 0 #993300'">
+        🌋 I said it!
+      </button>
+      <button onclick="childRetry()" style="width:100%;padding:0.6rem;border-radius:14px;border:2px solid #2a2a4a;background:#0d0d1a;color:#555;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;margin-bottom:8px;">↩ Try again</button>
+    </div>
+
+    <!-- THERAPIST BUTTONS -->
+    <div id="therapistControls" style="display:none;">
+      <div class="t-row">
+        <button class="t-btn t-good" onclick="tGood()">🌋 Good!</button>
+        <button class="t-btn t-retry" onclick="tRetry()">↩ Again</button>
+        <button class="t-btn t-reset" onclick="resetAll()">↺ Reset</button>
+      </div>
+    </div>
+
+    <!-- MODEL ROW -->
+    <div class="row-label">Model a voice:</div>
+    <div class="t-row">
+      <button class="t-btn t-model-w" onclick="showModel('whisper')">🤫 Whisper<br>library / secret</button>
+      <button class="t-btn t-model-i" onclick="showModel('indoor')">🏠 Indoor<br>classroom / home</button>
+      <button class="t-btn t-model-o" onclick="showModel('outside')">📣 Outside<br>playground / street</button>
+    </div>
+
+    <!-- MODEL INDICATOR -->
+    <div class="model-indicator" id="modelIndicator">
+      <span class="mi-icon" id="modelIcon">🤫</span>
+      <div class="mi-text" id="modelText">
+        <span class="mi-head" id="modelHead">Therapist: WHISPER voice</span>
+        <span class="mi-sub" id="modelSub">Like in a library or telling a secret</span>
+      </div>
+      <span class="mi-close" onclick="hideModel()">✕</span>
+    </div>
+
+  </div>
+
+  <!-- SCORE -->
+  <div class="score-row">
+    <div class="score-card">
+      <div class="sc-val" id="scReps">0</div>
+      <div class="sc-label">🌋 Total Reps</div>
+    </div>
+    <div class="score-card">
+      <div class="sc-val" id="scEruptions">0</div>
+      <div class="sc-label">💥 Eruptions</div>
+    </div>
+    <div class="score-card">
+      <div class="sc-val" id="scZone">ba</div>
+      <div class="sc-label">🎯 Syllable</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var mode = 'child';
+var reps = 4;
+var zone = 'indoor';
+var repsDone = 0;
+var totalReps = 0;
+var eruptions = 0;
+var LAVA_MAX_HEIGHT = 72;
+
+var family = 'voiced';
+var vowel = 'a';
+var sylIdx = 0;
+
+var CV_FAMILIES = {
+  voiced:    { cons:['b','d','g','m','n'],   hints:{b:'lips together',d:'tongue tip up',g:'back of tongue',m:'lips + hum',n:'tongue tip + hum'} },
+  voiceless: { cons:['p','t','k'],           hints:{p:'lips pop',t:'tongue tip flick',k:'back of tongue pop'} },
+  fricative: { cons:['f','s','sh'],          hints:{f:'top teeth + bottom lip',s:'snake sound',sh:'shush sound'} },
+  nasal:     { cons:['m','n','ng'],          hints:{m:'lips + hum',n:'tongue tip + hum',ng:'back tongue + hum'} }
+};
+
+var VOWELS = {a:'a',ee:'ee',oo:'oo',oh:'oh',i:'i'};
+
+function getCurrentSyllables(){
+  var cons = CV_FAMILIES[family].cons;
+  var v = VOWELS[vowel];
+  return cons.map(function(c){ return c+v; });
+}
+
+function getCurrentHint(){
+  var cons = CV_FAMILIES[family].cons[sylIdx];
+  return CV_FAMILIES[family].hints[cons] || '';
+}
+
+function updateSyllableDisplay(){
+  var syls = getCurrentSyllables();
+  if(sylIdx >= syls.length) sylIdx = 0;
+  var syl = syls[sylIdx];
+  document.getElementById('syllableDisplay').textContent = syl;
+  document.getElementById('syllableHint').textContent = getCurrentHint();
+  document.getElementById('sylCounter').textContent = (sylIdx+1)+'/'+syls.length;
+  document.getElementById('scZone').textContent = syl;
+}
+
+function setFamily(btn,f){
+  family=f; sylIdx=0;
+  document.querySelectorAll('#familyRow .sound-chip').forEach(function(c){c.classList.remove('on');});
+  btn.classList.add('on');
+  updateSyllableDisplay();
+  statusText('Family: '+f+' — say "'+getCurrentSyllables()[0]+'"!');
+}
+
+function setVowel(btn,v){
+  vowel=v; sylIdx=0;
+  document.querySelectorAll('#vowelRow .sound-chip').forEach(function(c){c.classList.remove('on');});
+  btn.classList.add('on');
+  updateSyllableDisplay();
+}
+
+function nextSyl(){
+  var syls = getCurrentSyllables();
+  sylIdx = (sylIdx+1) % syls.length;
+  updateSyllableDisplay();
+  statusText('Now try: "'+getCurrentSyllables()[sylIdx]+'"!');
+}
+
+function prevSyl(){
+  var syls = getCurrentSyllables();
+  sylIdx = (sylIdx-1+syls.length) % syls.length;
+  updateSyllableDisplay();
+}
+
+function setMode(m){
+  mode=m;
+  var cb=document.getElementById('modeChildBtn');
+  var tb=document.getElementById('modeTherapistBtn');
+  document.getElementById('childControls').style.display=m==='child'?'block':'none';
+  document.getElementById('therapistControls').style.display=m==='therapist'?'block':'none';
+  if(m==='child'){
+    cb.style.background='#ff6600';cb.style.color='#fff';
+    tb.style.background='transparent';tb.style.color='#555';
+  } else {
+    tb.style.background='#ff6600';tb.style.color='#fff';
+    cb.style.background='transparent';cb.style.color='#555';
+  }
+  resetAll();
+}
+
+function childTap(){ tGood(); }
+function childRetry(){ tRetry(); }
+
+function setSound(){} // kept for compatibility
+
+// build stars
+(function(){
+  var s = document.getElementById('stars');
+  for(var i=0;i<28;i++){
+    var d = document.createElement('div');
+    d.className = 'star';
+    var size = Math.random()*2.5+1;
+    d.style.cssText = 'width:'+size+'px;height:'+size+'px;top:'+(Math.random()*100)+'%;left:'+(Math.random()*100)+'%;animation-delay:'+(Math.random()*3)+'s;animation-duration:'+(1.5+Math.random()*2)+'s;';
+    s.appendChild(d);
+  }
+})();
+
+// build rep dots
+function buildDots(){
+  var container = document.getElementById('repDots');
+  container.innerHTML='';
+  for(var i=0;i<reps;i++){
+    var d=document.createElement('div');
+    d.className='rep-dot'+(i<repsDone?' done':i===repsDone?' current':'');
+    d.id='rd'+i;
+    container.appendChild(d);
+  }
+}
+
+// build level markers
+function buildMarkers(){
+  var m = document.getElementById('levelMarkers');
+  m.innerHTML='';
+  m.style.height = LAVA_MAX_HEIGHT+'px';
+  for(var i=1;i<reps;i++){
+    var pct = (i/reps)*100;
+    var el = document.createElement('div');
+    el.className='lv-mark';
+    el.style.bottom=(pct/100*LAVA_MAX_HEIGHT)+'px';
+    el.innerHTML='<div class="lm-line"></div><span class="lm-label">rep '+i+'</span><div class="lm-line"></div>';
+    m.appendChild(el);
+  }
+}
+
+function updateLava(){
+  var pct = repsDone/reps;
+  var h = Math.round(pct * LAVA_MAX_HEIGHT);
+  document.getElementById('lavaFill').style.height = h+'px';
+  // glow intensity
+  var glow = document.getElementById('lavaGlow');
+  glow.style.height = (60 + pct*80)+'px';
+  glow.style.opacity = (0.3 + pct*0.5).toFixed(2);
+  // bar
+  document.getElementById('lavaBar').style.width = (pct*100)+'%';
+  document.getElementById('lavaBarLabel').textContent = repsDone+' / '+reps+' reps complete';
+  // rep dots
+  buildDots();
+  document.getElementById('repDone').textContent = repsDone;
+}
+
+function setLevel(l){} // removed
+
+function setReps(r){
+  reps=r;
+  ['r3','r4','r5','r6'].forEach(function(id){ document.getElementById(id).className='level-btn'; });
+  document.getElementById('r'+r).className='level-btn on';
+  document.getElementById('repTotal').textContent=r;
+  resetAll();
+}
+
+function setSound(btn,s){
+  sound=s;
+  document.querySelectorAll('.sound-chip').forEach(function(c){c.classList.remove('on');});
+  btn.classList.add('on');
+}
+
+function setZone(z){
+  zone=z;
+  ['whisper','indoor','outside'].forEach(function(zz){
+    document.getElementById('zp'+zz.charAt(0).toUpperCase()+zz.slice(1)).classList.remove('on');
+  });
+  document.getElementById('zp'+z.charAt(0).toUpperCase()+z.slice(1)).classList.add('on');
+  var labels={whisper:'Whisper',indoor:'Indoor',outside:'Outside'};
+  document.getElementById('scZone').textContent=labels[z];
+  var syls=getCurrentSyllables(); statusText('Zone: '+labels[z]+' — say "'+syls[sylIdx]+'"!');
+}
+
+function statusText(t){ document.getElementById('statusText').textContent=t; }
+
+function tGood(){
+  repsDone++;
+  totalReps++;
+  document.getElementById('scReps').textContent=totalReps;
+  if(repsDone>=reps){
+    updateLava();
+    setTimeout(erupt,400);
+  } else {
+    updateLava();
+    var syls=getCurrentSyllables(); statusText('Rep '+repsDone+' done! "'+syls[sylIdx]+'" 🌋 '+(reps-repsDone)+' more!');
+  }
+}
+
+function tRetry(){
+  var syls=getCurrentSyllables(); statusText('Try again — "'+syls[sylIdx]+'" in '+zone+' voice!');
+}
+
+function resetAll(){
+  repsDone=0;
+  document.getElementById('lavaFill').style.height='0px';
+  document.getElementById('lavaGlow').style.height='60px';
+  document.getElementById('lavaGlow').style.opacity='0.3';
+  document.getElementById('lavaBar').style.width='0%';
+  document.getElementById('lavaBarLabel').textContent='0 / '+reps+' reps complete';
+  document.getElementById('repDone').textContent='0';
+  document.getElementById('repTotal').textContent=reps;
+  document.getElementById('eruption').className='eruption';
+  buildDots();
+  buildMarkers();
+  statusText('Ready — tap 🌋 Good Rep for each successful hold!');
+}
+
+function erupt(){
+  eruptions++;
+  document.getElementById('scEruptions').textContent=eruptions;
+  statusText('🌋💥 ERUPTION! Amazing work!');
+  var el = document.getElementById('eruption');
+  el.innerHTML='';
+  el.className='eruption active';
+
+  // flash
+  var flash=document.createElement('div');
+  flash.className='erupt-flash';
+  el.appendChild(flash);
+
+  // lava particles
+  var cx=160, cy=80;
+  for(var i=0;i<22;i++){
+    var p=document.createElement('div');
+    p.className='lava-particle';
+    var angle=(Math.random()*180+180)*Math.PI/180; // upward arc
+    var dist=80+Math.random()*120;
+    var tx=Math.round(Math.cos(angle)*dist);
+    var ty=Math.round(Math.sin(angle)*dist - 60);
+    var size=6+Math.random()*12;
+    p.style.cssText='left:'+cx+'px;top:'+cy+'px;width:'+size+'px;height:'+size+'px;--tx:'+tx+'px;--ty:'+ty+'px;animation-delay:'+(Math.random()*0.3)+'s;animation-duration:'+(0.8+Math.random()*0.6)+'s;background:hsl('+(Math.random()*30+10)+',100%,'+(40+Math.random()*20)+'%);';
+    el.appendChild(p);
+  }
+
+  // ash clouds
+  for(var j=0;j<5;j++){
+    var a=document.createElement('div');
+    a.className='ash-cloud';
+    var as=30+Math.random()*30;
+    a.style.cssText='left:'+(130+Math.random()*60)+'px;top:'+(40+Math.random()*40)+'px;width:'+as+'px;height:'+as+'px;animation-delay:'+(j*0.2)+'s;';
+    el.appendChild(a);
+  }
+
+  // reset after eruption
+  setTimeout(function(){
+    el.className='eruption';
+    repsDone=0;
+    updateLava();
+    statusText('🌋 Eruption complete! Go again?');
+  }, 3000);
+}
+
+function showModel(z){
+  var info={
+    whisper:{icon:'🤫',head:'Therapist: WHISPER voice',sub:'Like in a library or telling a secret'},
+    indoor: {icon:'🏠',head:'Therapist: INDOOR voice', sub:'Like in a classroom or at home'},
+    outside:{icon:'📣',head:'Therapist: OUTSIDE voice',sub:'Like on the playground or calling someone'}
+  };
+  var d=info[z];
+  document.getElementById('modelIcon').textContent=d.icon;
+  document.getElementById('modelHead').textContent=d.head;
+  document.getElementById('modelSub').textContent=d.sub;
+  var mt=document.getElementById('modelText');
+  mt.className='mi-text '+z;
+  var ind=document.getElementById('modelIndicator');
+  ind.className='model-indicator show '+z;
+}
+
+function hideModel(){
+  document.getElementById('modelIndicator').className='model-indicator';
+}
+
+// INIT
+buildDots();
+buildMarkers();
+document.getElementById('repTotal').textContent=reps;
+updateSyllableDisplay();
+setMode('child');
+</script>
+</body>
+</html>
