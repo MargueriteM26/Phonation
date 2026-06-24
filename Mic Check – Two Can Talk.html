@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<!-- saved from url=(0057)file:///Users/margueritegaynor/Downloads/mic_check_1.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mic Check – Two Can Talk</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:#f0f4ff;min-height:100vh;padding:10px;}
+.wrap{max-width:520px;margin:0 auto;}
+
+/* HEADER */
+.header{text-align:center;padding:10px 0 6px;}
+.header h1{font-size:22px;font-weight:900;color:#1a1a2e;letter-spacing:-0.3px;}
+.header p{font-size:12px;color:#999;margin-top:2px;}
+
+/* MIC STAGE */
+.stage{
+  background:#fff;border-radius:24px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.08);
+  padding:20px 16px 16px;
+  margin-bottom:14px;
+  display:flex;gap:20px;align-items:flex-end;
+  justify-content:center;
+  min-height:280px;
+  position:relative;
+}
+
+/* VU METER */
+.vu-wrap{
+  display:flex;flex-direction:column;gap:4px;justify-content:flex-end;
+  height:220px;width:52px;flex-shrink:0;
+}
+.vu-bar{
+  width:100%;border-radius:6px;height:16px;
+  transition:opacity 0.2s, transform 0.2s;
+  opacity:0.15;
+}
+.vu-bar.lit{opacity:1;transform:scaleX(1.05);}
+.vu-bar.silent{background:#e0e0e0 !important;}
+
+/* MIC SVG AREA */
+.mic-area{
+  display:flex;flex-direction:column;align-items:center;
+  gap:0;flex:1;max-width:180px;
+}
+.mic-svg-wrap{
+  position:relative;
+  width:140px;height:215px;
+}
+.mic-glow{
+  position:absolute;top:20px;left:50%;transform:translateX(-50%);
+  width:80px;height:80px;border-radius:50%;
+  background:radial-gradient(circle,#fff 0%,transparent 70%);
+  opacity:0;transition:opacity 0.4s, transform 0.4s;
+  pointer-events:none;
+}
+.mic-glow.active{opacity:0.8;transform:translateX(-50%) scale(1.4);}
+
+/* ZONE LABEL ON MIC */
+.mic-zone-label{
+  position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;
+  border-radius:20px;padding:3px 14px;white-space:nowrap;
+  opacity:0;transition:opacity 0.3s;
+}
+.mic-zone-label.show{opacity:1;}
+
+/* SOUND WAVES */
+.sound-waves{
+  position:absolute;top:30px;left:50%;transform:translateX(-50%);
+  pointer-events:none;
+}
+.wave-ring{
+  position:absolute;border-radius:50%;border:3px solid;
+  top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
+  opacity:0;
+}
+.wave-ring.animate{
+  animation:waveout 0.8s ease-out forwards;
+}
+@keyframes waveout{
+  0%{transform:translate(-50%,-50%) scale(0.3);opacity:0.8;}
+  100%{transform:translate(-50%,-50%) scale(2.5);opacity:0;}
+}
+
+/* CONFETTI */
+.confetti-wrap{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:24px;}
+.confetti-piece{
+  position:absolute;width:8px;height:8px;border-radius:2px;
+  animation:confettifall 1.2s ease-out forwards;
+  opacity:0;
+}
+@keyframes confettifall{
+  0%{opacity:1;transform:translateY(0) rotate(0);}
+  100%{opacity:0;transform:translateY(120px) rotate(360deg);}
+}
+
+/* STATUS BADGE */
+.status-badge{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;
+  border-radius:20px;padding:5px 16px;white-space:nowrap;
+  background:#f0f4ff;color:#999;
+  transition:background 0.3s, color 0.3s;
+  box-shadow:0 2px 8px rgba(0,0,0,0.07);
+}
+
+/* PANEL */
+.panel{background:#fff;border-radius:20px;padding:14px;margin-bottom:12px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.row-label{font-size:11px;font-weight:800;color:#bbb;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* MODE ROW */
+.mode-row{display:flex;gap:0;border-radius:50px;overflow:hidden;border:2px solid #eee;margin-bottom:12px;}
+.mode-btn{flex:1;padding:0.5rem;border:none;background:transparent;color:#bbb;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;transition:all 0.2s;}
+.mode-btn.on{background:#1a1a2e;color:#fff;border-radius:50px;}
+
+/* ZONE CARDS */
+.zone-cards{display:flex;gap:8px;margin-bottom:12px;}
+.zone-card{
+  flex:1;border-radius:14px;border:2.5px solid #eee;
+  background:#fafafa;padding:0.65rem 0.3rem;
+  text-align:center;cursor:pointer;
+  transition:all 0.2s;
+}
+.zone-card .zc-emoji{font-size:22px;display:block;margin-bottom:3px;}
+.zone-card .zc-name{font-size:12px;font-weight:800;display:block;}
+.zone-card .zc-ctx{font-size:9px;font-weight:700;opacity:0.55;display:block;margin-top:1px;}
+.zone-card.on.whisper{border-color:#5BCEFA;background:#e8f6fe;}
+.zone-card.on.indoor{border-color:#4CAF50;background:#e8f8e8;}
+.zone-card.on.outside{border-color:#FF6B35;background:#fff0ea;}
+.zone-card.whisper .zc-name{color:#185FA5;}
+.zone-card.indoor .zc-name{color:#2a6e1a;}
+.zone-card.outside .zc-name{color:#c0392b;}
+
+/* SOUND + REPS */
+.chip-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.chip{
+  padding:0.3rem 0.75rem;border-radius:50px;
+  border:2px solid #eee;background:#fafafa;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;
+  color:#bbb;cursor:pointer;transition:all 0.15s;
+}
+.chip.on{border-color:#1a1a2e;background:#1a1a2e;color:#fff;}
+
+/* HOLD / TAP BUTTONS */
+.hold-btn{
+  width:100%;padding:1rem;border-radius:50px;border:none;
+  background:#1a1a2e;color:#fff;
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;
+  cursor:pointer;box-shadow:0 5px 0 #0a0a18;
+  transition:transform 0.1s,box-shadow 0.1s,background 0.2s;
+  user-select:none;-webkit-user-select:none;touch-action:none;
+  margin-bottom:8px;
+}
+.hold-btn.pressed{transform:translateY(5px);box-shadow:0 0 0 #0a0a18;}
+.hold-btn.w-active{background:#185FA5;box-shadow:0 5px 0 #0d3a6e;}
+.hold-btn.i-active{background:#2a6e1a;box-shadow:0 5px 0 #0f3a08;}
+.hold-btn.o-active{background:#c0392b;box-shadow:0 5px 0 #7a1a1a;}
+
+.t-row{display:flex;gap:8px;margin-bottom:8px;}
+.t-btn{
+  flex:1;padding:0.75rem 0.3rem;border-radius:14px;border:none;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;
+  cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,0.12);
+  transition:transform 0.1s,box-shadow 0.1s;text-align:center;
+}
+.t-btn:active{transform:translateY(4px);box-shadow:0 0 0 rgba(0,0,0,0.12);}
+.t-good{background:#4CAF50;color:#fff;box-shadow:0 4px 0 #2a6e1a;}
+.t-retry{background:#f0f0f0;color:#888;box-shadow:0 4px 0 #ccc;}
+.t-reset{background:#f0f0f0;color:#888;box-shadow:0 4px 0 #ccc;}
+
+/* MODEL BUTTONS */
+.model-row{display:flex;gap:6px;margin-bottom:8px;}
+.m-btn{
+  flex:1;padding:0.6rem 0.2rem;border-radius:12px;border:none;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;
+  cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,0.1);
+  transition:transform 0.1s;text-align:center;line-height:1.5;
+}
+.m-btn:active{transform:translateY(3px);box-shadow:0 0 0 rgba(0,0,0,0.1);}
+.m-w{background:#e8f6fe;color:#185FA5;}
+.m-i{background:#e8f8e8;color:#2a6e1a;}
+.m-o{background:#fff0ea;color:#c0392b;}
+
+/* MODEL INDICATOR */
+.model-indicator{
+  border-radius:14px;padding:10px 14px;margin-bottom:8px;
+  display:none;align-items:center;gap:10px;border:2px solid transparent;
+}
+.model-indicator.show{display:flex;}
+.model-indicator.whisper{background:#e8f6fe;border-color:#5BCEFA;}
+.model-indicator.indoor{background:#e8f8e8;border-color:#4CAF50;}
+.model-indicator.outside{background:#fff0ea;border-color:#FF6B35;}
+.mi-icon{font-size:26px;flex-shrink:0;}
+.mi-head{font-size:13px;font-weight:900;display:block;}
+.mi-sub{font-size:11px;font-weight:700;opacity:0.6;display:block;margin-top:1px;}
+.mi-head.whisper{color:#185FA5;}
+.mi-head.indoor{color:#2a6e1a;}
+.mi-head.outside{color:#c0392b;}
+.mi-close{margin-left:auto;color:#bbb;cursor:pointer;font-size:16px;padding:4px;}
+
+/* SCORE */
+.score-row{display:flex;gap:8px;}
+.score-card{
+  flex:1;background:#fff;border-radius:14px;
+  padding:0.6rem 0.5rem;text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+}
+.sc-val{font-size:20px;font-weight:900;color:#1a1a2e;}
+.sc-label{font-size:9px;color:#bbb;font-weight:700;margin-top:2px;}
+
+/* PROGRESS BAR */
+.prog-wrap{margin-bottom:10px;}
+.prog-track{height:10px;background:#f0f0f0;border-radius:10px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:10px;width:0%;transition:width 0.4s ease;}
+.prog-labels{display:flex;justify-content:space-between;margin-top:3px;}
+.prog-labels span{font-size:10px;color:#ccc;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <h1>🎤 Mic Check!</h1>
+    <p>Use your voice — light up the mic!</p>
+  </div>
+
+  <!-- STAGE -->
+  <div class="stage" id="stage">
+
+    <!-- VU METER LEFT -->
+    <div class="vu-wrap" id="vuLeft"><div class="vu-bar" id="vuLeftbar11" style="background: rgb(165, 214, 167);"></div><div class="vu-bar" id="vuLeftbar10" style="background: rgb(165, 214, 167);"></div><div class="vu-bar" id="vuLeftbar9" style="background: rgb(165, 214, 167);"></div><div class="vu-bar" id="vuLeftbar8" style="background: rgb(102, 187, 106);"></div><div class="vu-bar" id="vuLeftbar7" style="background: rgb(102, 187, 106);"></div><div class="vu-bar" id="vuLeftbar6" style="background: rgb(102, 187, 106);"></div><div class="vu-bar" id="vuLeftbar5" style="background: rgb(76, 175, 80);"></div><div class="vu-bar" id="vuLeftbar4" style="background: rgb(76, 175, 80);"></div><div class="vu-bar" id="vuLeftbar3" style="background: rgb(76, 175, 80);"></div><div class="vu-bar" id="vuLeftbar2" style="background: rgb(56, 142, 60);"></div><div class="vu-bar" id="vuLeftbar1" style="background: rgb(56, 142, 60);"></div><div class="vu-bar" id="vuLeftbar0" style="background: rgb(56, 142, 60);"></div></div>
+
+    <!-- MIC -->
+    <div class="mic-area">
+      <div class="mic-svg-wrap">
+        <div class="mic-glow" id="micGlow" style="background: radial-gradient(circle, rgba(76, 175, 80, 0.533) 0%, transparent 70%);"></div>
+        <div class="mic-zone-label" id="micZoneLabel" style="background: rgb(76, 175, 80); color: rgb(255, 255, 255);">🏠 Indoor</div>
+        <div class="sound-waves" id="soundWaves">
+          <div class="wave-ring" id="wave1" style="width:60px;height:60px;"></div>
+          <div class="wave-ring" id="wave2" style="width:80px;height:80px;"></div>
+          <div class="wave-ring" id="wave3" style="width:100px;height:100px;"></div>
+        </div>
+        <svg width="140" height="210" viewBox="0 0 140 210" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- STAND BASE -->
+          <ellipse cx="70" cy="200" rx="38" ry="7" fill="#c8c8c8"></ellipse>
+          <!-- STAND POLE -->
+          <rect x="65" y="158" width="10" height="44" rx="5" fill="#b0b0b0"></rect>
+          <!-- STAND CURVED ARM -->
+          <path d="M70 158 Q70 145 55 138" stroke="#b0b0b0" stroke-width="9" stroke-linecap="round" fill="none"></path>
+          <!-- CLIP holding mic to stand -->
+          <rect x="48" y="133" width="14" height="10" rx="4" fill="#999"></rect>
+
+          <!-- MIC BODY — cylindrical capsule shape -->
+          <rect x="46" y="42" width="48" height="100" rx="10" fill="#2a2a2a" id="micBody" style="fill: rgb(44, 44, 42);"></rect>
+
+          <!-- GRILLE — mesh pattern top 2/3 -->
+          <!-- horizontal lines -->
+          <line x1="46" y1="55" x2="94" y2="55" stroke="#444" stroke-width="1.2"></line>
+          <line x1="46" y1="65" x2="94" y2="65" stroke="#444" stroke-width="1.2"></line>
+          <line x1="46" y1="75" x2="94" y2="75" stroke="#444" stroke-width="1.2"></line>
+          <line x1="46" y1="85" x2="94" y2="85" stroke="#444" stroke-width="1.2"></line>
+          <line x1="46" y1="95" x2="94" y2="95" stroke="#444" stroke-width="1.2"></line>
+          <line x1="46" y1="105" x2="94" y2="105" stroke="#444" stroke-width="1.2"></line>
+          <!-- vertical lines -->
+          <line x1="58" y1="42" x2="58" y2="115" stroke="#444" stroke-width="1.2"></line>
+          <line x1="70" y1="42" x2="70" y2="115" stroke="#444" stroke-width="1.2"></line>
+          <line x1="82" y1="42" x2="82" y2="115" stroke="#444" stroke-width="1.2"></line>
+
+          <!-- BAND separating grille from handle -->
+          <rect x="46" y="115" width="48" height="10" rx="3" fill="#555" id="micBand" style="fill: rgb(85, 85, 85);"></rect>
+
+          <!-- HANDLE lower part — slightly lighter -->
+          <rect x="50" y="125" width="40" height="17" rx="8" fill="#3a3a3a"></rect>
+
+          <!-- TOP DOME — rounded capsule top -->
+          <ellipse cx="70" cy="42" rx="24" ry="10" fill="#3a3a3a"></ellipse>
+          <!-- dome highlight -->
+          <ellipse cx="70" cy="40" rx="12" ry="5" fill="#505050" opacity="0.5"></ellipse>
+
+          <!-- ON AIR light -->
+          <rect x="55" y="128" width="30" height="10" rx="5" fill="#222" id="onAirBg"></rect>
+          <rect x="57" y="130" width="26" height="6" rx="3" fill="#ff4444" id="micLight" style="fill: rgb(255, 68, 68);"></rect>
+          <!-- ON AIR text -->
+          <text x="70" y="136" text-anchor="middle" font-size="5" font-weight="bold" fill="#fff" font-family="sans-serif">ON AIR</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- VU METER RIGHT -->
+    <div class="vu-wrap" id="vuRight"><div class="vu-bar" id="vuRightbar11" style="background: rgb(165, 214, 167);"></div><div class="vu-bar" id="vuRightbar10" style="background: rgb(165, 214, 167);"></div><div class="vu-bar" id="vuRightbar9" style="background: rgb(165, 214, 167);"></div><div class="vu-bar" id="vuRightbar8" style="background: rgb(102, 187, 106);"></div><div class="vu-bar" id="vuRightbar7" style="background: rgb(102, 187, 106);"></div><div class="vu-bar" id="vuRightbar6" style="background: rgb(102, 187, 106);"></div><div class="vu-bar" id="vuRightbar5" style="background: rgb(76, 175, 80);"></div><div class="vu-bar" id="vuRightbar4" style="background: rgb(76, 175, 80);"></div><div class="vu-bar" id="vuRightbar3" style="background: rgb(76, 175, 80);"></div><div class="vu-bar" id="vuRightbar2" style="background: rgb(56, 142, 60);"></div><div class="vu-bar" id="vuRightbar1" style="background: rgb(56, 142, 60);"></div><div class="vu-bar" id="vuRightbar0" style="background: rgb(56, 142, 60);"></div></div>
+
+    <!-- STATUS BADGE -->
+    <div class="status-badge" id="statusBadge" style="background: rgb(240, 244, 255); color: rgb(153, 153, 153);">🎤 Ready to record!</div>
+
+    <!-- CONFETTI -->
+    <div class="confetti-wrap" id="confettiWrap"></div>
+  </div>
+
+  <!-- PANEL -->
+  <div class="panel">
+
+    <!-- MODE -->
+    <div class="row-label">Mode</div>
+    <div class="mode-row">
+      <button class="mode-btn on" id="mChild" onclick="setMode(&#39;child&#39;)">🎮 Child</button>
+      <button class="mode-btn" id="mTherapist" onclick="setMode(&#39;therapist&#39;)">👩‍⚕️ Therapist</button>
+    </div>
+
+    <!-- ZONE -->
+    <div class="row-label">Volume zone</div>
+    <div class="zone-cards">
+      <div class="zone-card whisper" id="zcWhisper" onclick="setZone(&#39;whisper&#39;)">
+        <span class="zc-emoji">🤫</span>
+        <span class="zc-name">Whisper</span>
+        <span class="zc-ctx">library / secret</span>
+      </div>
+      <div class="zone-card indoor on" id="zcIndoor" onclick="setZone(&#39;indoor&#39;)">
+        <span class="zc-emoji">🏠</span>
+        <span class="zc-name">Indoor</span>
+        <span class="zc-ctx">classroom / home</span>
+      </div>
+      <div class="zone-card outside" id="zcOutside" onclick="setZone(&#39;outside&#39;)">
+        <span class="zc-emoji">📣</span>
+        <span class="zc-name">Outside</span>
+        <span class="zc-ctx">playground / street</span>
+      </div>
+    </div>
+
+    <!-- SOUND / CV TARGET -->
+    <div class="row-label">Consonant family</div>
+    <div class="chip-row" id="familyRow">
+      <button class="chip on" onclick="setFamily(this,&#39;voiced&#39;)">b d m n</button>
+      <button class="chip" onclick="setFamily(this,&#39;voiceless&#39;)">p t k</button>
+      <button class="chip" onclick="setFamily(this,&#39;fricative&#39;)">f s sh</button>
+    </div>
+    <div class="row-label">Vowel</div>
+    <div class="chip-row" id="vowelRow">
+      <button class="chip on" onclick="setVowel(this,&#39;a&#39;)">a</button>
+      <button class="chip" onclick="setVowel(this,&#39;ee&#39;)">ee</button>
+      <button class="chip" onclick="setVowel(this,&#39;oo&#39;)">oo</button>
+      <button class="chip" onclick="setVowel(this,&#39;oh&#39;)">oh</button>
+      <button class="chip" onclick="setVowel(this,&#39;i&#39;)">i</button>
+    </div>
+    <!-- BIG SYLLABLE CARD -->
+    <div style="background:#f0f4ff;border-radius:14px;padding:12px 10px;margin-bottom:12px;text-align:center;border:2px solid #e0e8ff;">
+      <div style="font-size:10px;font-weight:800;color:#bbb;letter-spacing:1px;margin-bottom:4px;">SAY THIS</div>
+      <div id="syllableDisplay" style="font-size:52px;font-weight:900;color:#1a1a2e;line-height:1;letter-spacing:2px;">ba</div>
+      <div id="syllableHint" style="font-size:11px;color:#aaa;font-weight:700;margin-top:4px;">lips together → open</div>
+      <div style="display:flex;gap:6px;justify-content:center;margin-top:10px;">
+        <button onclick="prevSyl()" style="padding:0.3rem 0.8rem;border-radius:50px;border:2px solid #e0e0e0;background:#fff;color:#1a1a2e;font-family:&#39;Nunito&#39;,sans-serif;font-weight:800;font-size:13px;cursor:pointer;">◀ Prev</button>
+        <span id="sylCounter" style="font-size:11px;font-weight:800;color:#bbb;align-self:center;min-width:32px;text-align:center;">1/4</span>
+        <button onclick="nextSyl()" style="padding:0.3rem 0.8rem;border-radius:50px;border:none;background:#1a1a2e;color:#fff;font-family:&#39;Nunito&#39;,sans-serif;font-weight:800;font-size:13px;cursor:pointer;">Next ▶</button>
+      </div>
+    </div>
+
+    <!-- REPS -->
+    <div class="row-label">Reps to complete</div>
+    <div class="chip-row">
+      <button class="chip" id="rp3" onclick="setReps(3)">3</button>
+      <button class="chip on" id="rp4" onclick="setReps(4)">4</button>
+      <button class="chip" id="rp5" onclick="setReps(5)">5</button>
+      <button class="chip" id="rp6" onclick="setReps(6)">6</button>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="prog-wrap">
+      <div class="prog-track"><div class="prog-fill" id="progFill" style="width: 0%; background: rgb(76, 175, 80);"></div></div>
+      <div class="prog-labels"><span id="progLeft">0 reps</span><span id="progRight">4 reps</span></div>
+    </div>
+
+    <!-- STATUS TEXT -->
+    <div style="text-align:center;font-size:13px;font-weight:800;color:#aaa;min-height:20px;margin-bottom:10px;" id="statusText">🏠 Indoor voice — say "Aaah"!</div>
+
+    <!-- CHILD CONTROLS -->
+    <div id="childControls">
+      <button class="hold-btn" id="holdBtn">🎤 Hold to speak!</button>
+    </div>
+
+    <!-- THERAPIST CONTROLS -->
+    <div id="therapistControls" style="display:none;">
+      <div class="t-row">
+        <button class="t-btn t-good" onclick="tGood()">✓ Good!</button>
+        <button class="t-btn t-retry" onclick="tRetry()">↩ Again</button>
+        <button class="t-btn t-reset" onclick="resetAll()">↺ Reset</button>
+      </div>
+    </div>
+
+    <!-- MODEL -->
+    <div class="row-label" style="margin-top:4px;">Model a voice</div>
+    <div class="model-row">
+      <button class="m-btn m-w" onclick="showModel(&#39;whisper&#39;)">🤫 Whisper<br><span style="font-size:9px;">library / secret</span></button>
+      <button class="m-btn m-i" onclick="showModel(&#39;indoor&#39;)">🏠 Indoor<br><span style="font-size:9px;">classroom / home</span></button>
+      <button class="m-btn m-o" onclick="showModel(&#39;outside&#39;)">📣 Outside<br><span style="font-size:9px;">playground / street</span></button>
+    </div>
+    <div class="model-indicator" id="modelIndicator">
+      <span class="mi-icon" id="modelIcon">🤫</span>
+      <div>
+        <span class="mi-head" id="modelHead">Therapist: WHISPER voice</span>
+        <span class="mi-sub" id="modelSub">Like in a library or telling a secret</span>
+      </div>
+      <span class="mi-close" onclick="hideModel()">✕</span>
+    </div>
+
+  </div>
+
+  <!-- SCORE -->
+  <div class="score-row">
+    <div class="score-card">
+      <div class="sc-val" id="scReps">0</div>
+      <div class="sc-label">🎤 Total Reps</div>
+    </div>
+    <div class="score-card">
+      <div class="sc-val" id="scStreak">0</div>
+      <div class="sc-label">🔥 Streak</div>
+    </div>
+    <div class="score-card">
+      <div class="sc-val" id="scZone">Indoor</div>
+      <div class="sc-label">📢 Zone</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var mode = 'child';
+var zone = 'indoor';
+var sound = 'Aaah';
+var reps = 4;
+var repsDone = 0;
+var totalReps = 0;
+var streak = 0;
+var holding = false;
+var elapsed = 0;
+var holdTimer = null;
+var litBars = 0;
+
+var ZONE_COLOURS = {
+  whisper: {primary:'#5BCEFA', dark:'#185FA5', bg:'#e8f6fe', bars:['#B5D4F4','#7EC8F0','#5BCEFA','#3aaae0','#185FA5']},
+  indoor:  {primary:'#4CAF50', dark:'#2a6e1a', bg:'#e8f8e8', bars:['#a5d6a7','#66bb6a','#4CAF50','#388e3c','#2a6e1a']},
+  outside: {primary:'#FF6B35', dark:'#c0392b', bg:'#fff0ea', bars:['#ffcc80','#ffa726','#FF6B35','#e64a19','#c0392b']}
+};
+var ZONE_LABELS = {whisper:'🤫 Whisper',indoor:'🏠 Indoor',outside:'📣 Outside'};
+var HOLD_SECS = 3;
+var VU_BARS = 12;
+
+// BUILD VU METERS
+function buildVU(){
+  ['vuLeft','vuRight'].forEach(function(id){
+    var el = document.getElementById(id);
+    el.innerHTML = '';
+    for(var i=VU_BARS-1;i>=0;i--){
+      var b = document.createElement('div');
+      b.className = 'vu-bar silent';
+      b.id = id+'bar'+i;
+      el.appendChild(b);
+    }
+  });
+}
+buildVU();
+
+function setVULevel(bars){
+  var cols = ZONE_COLOURS[zone].bars;
+  for(var i=0;i<VU_BARS;i++){
+    var pct = ((VU_BARS-1-i)/VU_BARS);
+    var colIdx = Math.floor(pct * (cols.length-1));
+    var col = cols[colIdx];
+    ['vuLeft','vuRight'].forEach(function(id){
+      var b = document.getElementById(id+'bar'+i);
+      if(!b) return;
+      b.style.background = col;
+      b.className = 'vu-bar' + (i >= VU_BARS - bars ? ' lit' : '');
+    });
+  }
+  litBars = bars;
+}
+
+function flashWaves(){
+  var waves = ['wave1','wave2','wave3'];
+  var col = ZONE_COLOURS[zone].primary;
+  waves.forEach(function(id, idx){
+    var el = document.getElementById(id);
+    el.style.borderColor = col;
+    el.className = 'wave-ring';
+    void el.offsetWidth;
+    setTimeout(function(){
+      el.className = 'wave-ring animate';
+    }, idx * 120);
+  });
+}
+
+function updateMic(active){
+  var col = ZONE_COLOURS[zone];
+  document.getElementById('micGlow').style.background = 'radial-gradient(circle,'+col.primary+'88 0%,transparent 70%)';
+  document.getElementById('micGlow').className = 'mic-glow'+(active?' active':'');
+  document.getElementById('micBody').style.fill = active ? col.dark : '#2C2C2A';
+  document.getElementById('micBand').style.fill = active ? col.primary : '#555';
+  document.getElementById('micLight').style.fill = active ? col.primary : '#ff4444';
+  var zl = document.getElementById('micZoneLabel');
+  zl.style.background = col.primary;
+  zl.style.color = '#fff';
+  zl.textContent = ZONE_LABELS[zone];
+  zl.className = 'mic-zone-label'+(active?' show':'');
+}
+
+function updateStage(pct){
+  var bars = Math.round((pct/100) * VU_BARS);
+  setVULevel(bars);
+  updateMic(bars > 0);
+  var badge = document.getElementById('statusBadge');
+  var col = ZONE_COLOURS[zone];
+  if(pct === 0){
+    badge.style.background = '#f0f4ff';
+    badge.style.color = '#999';
+    badge.textContent = '🎤 Ready to record!';
+  } else if(pct < 100){
+    badge.style.background = col.bg;
+    badge.style.color = col.dark;
+    badge.textContent = '🔴 Recording... keep going!';
+  } else {
+    badge.style.background = col.primary;
+    badge.style.color = '#fff';
+    badge.textContent = '⭐ Perfect!';
+  }
+}
+
+function resetStage(){
+  setVULevel(0);
+  updateMic(false);
+  var badge = document.getElementById('statusBadge');
+  badge.style.background = '#f0f4ff';
+  badge.style.color = '#999';
+  badge.textContent = '🎤 Ready to record!';
+}
+
+// CONFETTI
+function confetti(){
+  var wrap = document.getElementById('confettiWrap');
+  wrap.innerHTML = '';
+  var colours = ['#FF6B35','#4CAF50','#5BCEFA','#FFD700','#FF69B4','#9B59B6'];
+  for(var i=0;i<24;i++){
+    var p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.cssText = 'left:'+(10+Math.random()*80)+'%;top:'+(Math.random()*40)+'%;background:'+colours[Math.floor(Math.random()*colours.length)]+';animation-delay:'+(Math.random()*0.4)+'s;animation-duration:'+(0.8+Math.random()*0.6)+'s;transform:rotate('+(Math.random()*360)+'deg);';
+    wrap.appendChild(p);
+  }
+  setTimeout(function(){ wrap.innerHTML=''; }, 1800);
+}
+
+// PROGRESS
+function updateProgress(){
+  var pct = (repsDone/reps)*100;
+  var fill = document.getElementById('progFill');
+  fill.style.width = pct+'%';
+  fill.style.background = ZONE_COLOURS[zone].primary;
+  document.getElementById('progLeft').textContent = repsDone+' rep'+(repsDone!==1?'s':'');
+  document.getElementById('progRight').textContent = reps+' reps';
+  document.getElementById('scReps').textContent = totalReps;
+  document.getElementById('scStreak').textContent = streak;
+}
+
+function statusText(t){ document.getElementById('statusText').textContent = t; }
+
+// ZONE / SOUND / REPS
+function setZone(z){
+  zone = z;
+  ['whisper','indoor','outside'].forEach(function(zz){
+    document.getElementById('zc'+zz.charAt(0).toUpperCase()+zz.slice(1)).classList.remove('on');
+  });
+  document.getElementById('zc'+z.charAt(0).toUpperCase()+z.slice(1)).classList.add('on');
+  document.getElementById('scZone').textContent = z.charAt(0).toUpperCase()+z.slice(1);
+  resetAll();
+  statusText(ZONE_LABELS[z]+' voice — say "'+sound+'"!');
+}
+
+function setSound(btn, s){
+  sound = s;
+  document.querySelectorAll('#soundRow .chip').forEach(function(c){c.classList.remove('on');});
+  btn.classList.add('on');
+  statusText('Say "'+s+'" in your '+zone+' voice!');
+}
+
+function setReps(r){
+  reps = r;
+  ['rp3','rp4','rp5','rp6'].forEach(function(id){ document.getElementById(id).classList.remove('on'); });
+  document.getElementById('rp'+r).classList.add('on');
+  resetAll();
+}
+
+function setMode(m){
+  mode = m;
+  document.getElementById('mChild').className = 'mode-btn'+(m==='child'?' on':'');
+  document.getElementById('mTherapist').className = 'mode-btn'+(m==='therapist'?' on':'');
+  document.getElementById('childControls').style.display = m==='child'?'block':'none';
+  document.getElementById('therapistControls').style.display = m==='therapist'?'block':'none';
+  resetAll();
+}
+
+// CHILD HOLD
+var holdBtn = document.getElementById('holdBtn');
+
+function startHold(e){
+  if(e) e.preventDefault();
+  if(holding || repsDone >= reps) return;
+  holding = true; elapsed = 0;
+  holdBtn.classList.add('pressed', zone[0]+'-active');
+  holdBtn.textContent = '🎤 Keep going... "'+sound+'"';
+  holdTimer = setInterval(function(){
+    elapsed += 60;
+    var pct = Math.min((elapsed/(HOLD_SECS*1000))*100,100);
+    updateStage(pct);
+    flashWaves();
+    if(elapsed >= HOLD_SECS*1000){ clearInterval(holdTimer); holdSuccess(); }
+  },60);
+}
+
+function endHold(e){
+  if(e) e.preventDefault();
+  if(!holding) return;
+  holding = false;
+  clearInterval(holdTimer);
+  holdBtn.classList.remove('pressed','w-active','i-active','o-active');
+  holdBtn.textContent = '🎤 Hold to speak!';
+  if(elapsed < HOLD_SECS*1000){
+    streak = 0;
+    document.getElementById('scStreak').textContent = streak;
+    statusText('So close! Try again — "'+sound+'"!');
+    setTimeout(resetStage, 800);
+  }
+}
+
+function holdSuccess(){
+  holding = false;
+  holdBtn.classList.remove('pressed','w-active','i-active','o-active');
+  holdBtn.textContent = '🎤 Hold to speak!';
+  scoreRep();
+}
+
+// THERAPIST
+function tGood(){ scoreRep(); }
+function tRetry(){
+  streak = 0;
+  document.getElementById('scStreak').textContent = streak;
+  statusText('Try again — "'+sound+'" in '+zone+' voice!');
+  resetStage();
+}
+
+function scoreRep(){
+  repsDone++; totalReps++; streak++;
+  flashWaves();
+  updateStage(100);
+  updateProgress();
+  if(repsDone >= reps){
+    confetti();
+    statusText('🎉 All '+reps+' reps done! Streak: '+streak+'!');
+    setTimeout(function(){ repsDone=0; updateStage(0); updateProgress(); resetStage(); }, 2500);
+  } else {
+    statusText('✓ Rep '+repsDone+' — '+streak+' in a row! Keep going!');
+    setTimeout(function(){ updateStage(0); resetStage(); }, 600);
+  }
+}
+
+function resetAll(){
+  repsDone = 0; streak = 0; elapsed = 0; holding = false;
+  clearInterval(holdTimer);
+  resetStage();
+  updateProgress();
+  holdBtn.classList.remove('pressed','w-active','i-active','o-active');
+  holdBtn.textContent = '🎤 Hold to speak!';
+  statusText('Pick a zone and sound — then go!');
+}
+
+// MODEL
+function showModel(z){
+  var info = {
+    whisper:{icon:'🤫',head:'Therapist: WHISPER voice',sub:'Like in a library or telling a secret'},
+    indoor: {icon:'🏠',head:'Therapist: INDOOR voice', sub:'Like in a classroom or at home'},
+    outside:{icon:'📣',head:'Therapist: OUTSIDE voice',sub:'Like on the playground or calling someone'}
+  };
+  var d = info[z];
+  document.getElementById('modelIcon').textContent = d.icon;
+  document.getElementById('modelHead').textContent = d.head;
+  document.getElementById('modelHead').className = 'mi-head '+z;
+  document.getElementById('modelSub').textContent = d.sub;
+  document.getElementById('modelIndicator').className = 'model-indicator show '+z;
+}
+function hideModel(){ document.getElementById('modelIndicator').className='model-indicator'; }
+
+// HOLD BTN EVENTS
+holdBtn.addEventListener('mousedown',startHold);
+holdBtn.addEventListener('mouseup',endHold);
+holdBtn.addEventListener('mouseleave',endHold);
+holdBtn.addEventListener('touchstart',startHold,{passive:false});
+holdBtn.addEventListener('touchend',endHold,{passive:false});
+holdBtn.addEventListener('touchcancel',endHold,{passive:false});
+
+// CV SYSTEM
+var family = 'voiced';
+var vowel = 'a';
+var sylIdx = 0;
+var CV_FAMILIES = {
+  voiced:    {cons:['b','d','m','n'],    hints:{b:'lips together → open',d:'tongue tip → open',m:'lips + hum → open',n:'tongue tip + hum → open'}},
+  voiceless: {cons:['p','t','k'],        hints:{p:'lips pop',t:'tongue tip flick',k:'back of tongue pop'}},
+  fricative: {cons:['f','s','sh'],       hints:{f:'top teeth + lip → vowel',s:'snake → vowel',sh:'shush → vowel'}}
+};
+var VOWELS = {a:'a',ee:'ee',oo:'oo',oh:'oh',i:'i'};
+
+function getCurrentSyls(){
+  return CV_FAMILIES[family].cons.map(function(c){ return c+VOWELS[vowel]; });
+}
+function getCurrentHint(){
+  var c = CV_FAMILIES[family].cons[sylIdx];
+  return CV_FAMILIES[family].hints[c]||'';
+}
+function updateSylDisplay(){
+  var syls = getCurrentSyls();
+  if(sylIdx>=syls.length) sylIdx=0;
+  var syl = syls[sylIdx];
+  document.getElementById('syllableDisplay').textContent = syl;
+  document.getElementById('syllableHint').textContent = getCurrentHint();
+  document.getElementById('sylCounter').textContent = (sylIdx+1)+'/'+syls.length;
+  sound = syl;
+}
+function setFamily(btn,f){
+  family=f; sylIdx=0;
+  document.querySelectorAll('#familyRow .chip').forEach(function(c){c.classList.remove('on');});
+  btn.classList.add('on');
+  updateSylDisplay();
+}
+function setVowel(btn,v){
+  vowel=v; sylIdx=0;
+  document.querySelectorAll('#vowelRow .chip').forEach(function(c){c.classList.remove('on');});
+  btn.classList.add('on');
+  updateSylDisplay();
+}
+function nextSyl(){
+  var syls=getCurrentSyls(); sylIdx=(sylIdx+1)%syls.length; updateSylDisplay();
+}
+function prevSyl(){
+  var syls=getCurrentSyls(); sylIdx=(sylIdx-1+syls.length)%syls.length; updateSylDisplay();
+}
+
+// INIT
+buildVU();
+updateProgress();
+setZone('indoor');
+updateSylDisplay();
+</script>
+
+
+</body></html>
